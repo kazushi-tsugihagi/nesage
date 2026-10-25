@@ -245,7 +245,9 @@ const seenAt=ls.get('ns_seen',0);
 function readFeed(){try{const j=JSON.parse(document.getElementById('feed').textContent);return j&&typeof j==='object'?j:{}}catch(e){return {}}}
 async function fetchFeed(){try{const r=await fetch('feed.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});if(!r.ok)return null;const j=await r.json();return j&&Array.isArray(j.items)?j:null}catch(e){return null}}
 async function load(){
-  const F=(location.protocol.startsWith('http')&&!/claude/.test(location.hostname)?await fetchFeed():null)||readFeed(),S=sample();
+  const onSite=location.protocol.startsWith('http')&&!/claude/.test(location.hostname);
+  const F=(onSite?await fetchFeed():null)||readFeed(),S=sample();
+  if(onSite){try{const r=await fetch('calendar.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});if(r.ok){const c=await r.json();if(c&&Array.isArray(c.events)){F.calendar=c.events;if(!F.updated)F.updated=c.updated}}}catch(e){}}
   const realItems=Array.isArray(F.items)&&F.items.length>0;
   const realCal=Array.isArray(F.calendar)&&F.updated;
   D={items:realItems?F.items:S.items,calendar:realCal?F.calendar:S.calendar,updated:F.updated?Date.parse(F.updated):Date.now(),demoItems:!realItems,demoCal:!realCal};
