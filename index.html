@@ -61,7 +61,8 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .search input::-webkit-search-cancel-button{display:none}
 .search .clr{position:absolute;right:6px;border:0;background:transparent;color:var(--sub);cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1}
 .search .clr:hover{background:var(--bg);color:var(--ink)}
-.cats{display:flex;gap:0;border-bottom:1px solid var(--line);overflow-x:auto}
+.cats{display:flex;gap:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
 .cats button{border:0;background:transparent;padding:8px 14px 9px;font-weight:700;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-1px}
 .cats button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--tag)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
@@ -70,6 +71,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .chip .st{color:var(--tag)}
 .chip[aria-pressed="true"] .st{color:var(--tag)}
 .frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fg{display:inline-flex;align-items:center;gap:6px}
 .frow label{font-size:13px;color:var(--sub);display:flex;gap:6px;align-items:center}
 .frow select{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:5px 8px;font-size:13.5px}
 .count{margin-left:auto;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
@@ -111,10 +113,10 @@ aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:calc(env(s
 .box h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .box h2 small{font-size:11.5px;color:var(--sub);font-weight:500}
 .cal{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.cal li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.cal li{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .cal li:first-child{border-top:0;padding-top:2px}
 .d{text-align:center;font-variant-numeric:tabular-nums;line-height:1.1}
-.d b{display:block;font-family:var(--display);font-weight:400;font-size:20px}
+.d b{display:block;font-family:var(--display);font-weight:400;font-size:17px;white-space:nowrap;letter-spacing:-.01em}
 .d span{font-size:11px;color:var(--sub)}
 .ev{min-width:0}
 .ev p{margin:0;font-size:13.5px;font-weight:700;line-height:1.4}
@@ -165,12 +167,12 @@ footer p{margin:0;max-width:70ch}
         </div>
         <div class="chips" id="shops" role="group" aria-label="ショップでしぼる"></div>
         <div class="frow">
-          <label for="minOff">割引</label>
-          <select id="minOff"><option value="0">すべて</option><option value="20">20%以上</option><option value="30" selected>30%以上</option><option value="50">50%以上</option></select>
-          <label for="maxPrice">値段</label>
-          <select id="maxPrice"><option value="0">上限なし</option><option value="5000">5,000円まで</option><option value="10000">1万円まで</option><option value="20000">2万円まで</option></select>
-          <label for="sort">ならび</label>
-          <select id="sort"><option value="off">割引が大きい順</option><option value="cheap">安い順</option><option value="new">新着順</option></select>
+          <span class="fg"><label for="minOff">割引</label>
+          <select id="minOff"><option value="0">すべて</option><option value="20">20%以上</option><option value="30" selected>30%以上</option><option value="50">50%以上</option></select></span>
+          <span class="fg"><label for="maxPrice">値段</label>
+          <select id="maxPrice"><option value="0">上限なし</option><option value="5000">5,000円まで</option><option value="10000">1万円まで</option><option value="20000">2万円まで</option></select></span>
+          <span class="fg"><label for="sort">ならび</label>
+          <select id="sort"><option value="off">割引が大きい順</option><option value="cheap">安い順</option><option value="new">新着順</option></select></span>
           <span class="count" id="count"></span>
         </div>
       </div>
