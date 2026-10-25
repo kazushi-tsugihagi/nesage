@@ -1,0 +1,35 @@
+name: 毎朝の商品更新
+
+on:
+  schedule:
+    - cron: "17 21 * * *"   # 毎日 6:17（日本時間）
+  workflow_dispatch: {}      # 手動でも動かせる
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-feed
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: 楽天から値下げ商品を集める
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+        run: python3 fetch.py feed.json
+      - name: 変わっていたら保存する
+        run: |
+          git config user.name "nesage-bot"
+          git config user.email "nesage-bot@users.noreply.github.com"
+          git add feed.json
+          if git diff --cached --quiet; then echo "変更なし"; exit 0; fi
+          git commit -m "商品を更新 $(TZ=Asia/Tokyo date +%m/%d)"
+          git pull --rebase origin main
+          git push

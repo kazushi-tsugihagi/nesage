@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ネサゲ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="セレクトショップと人気ブランドの服のセール・値下げ情報を毎日まとめてお知らせ">
+<!-- 予備のデータ置き場。サイトでは feed.json を読みます -->
+<script id="feed" type="application/json">{"updated":null,"calendar":[],"items":[]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* レイアウト：値札（タグ）を並べた売り場。上に切りかえ、下に商品の棚、右（スマホは下）にセールカレンダー */
+:root{
+  --bg:#f3f4f7;--paper:#ffffff;--ink:#16181d;--sub:#5d6371;--line:#dfe2e8;
+  --tag:#d3214b;--tagInk:#ffffff;--soft:#fde8ed;--ok:#137a4b;--okSoft:#e2f4ea;--warn:#a35a00;--warnSoft:#fbefdc;
+  --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111318;--paper:#1a1d24;--ink:#eceef3;--sub:#9aa1b0;--line:#2b2f39;
+  --tag:#ff4d74;--tagInk:#16070b;--soft:#3a1720;--ok:#4fd393;--okSoft:#12301f;--warn:#f0b35a;--warnSoft:#33240f;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111318;--paper:#1a1d24;--ink:#eceef3;--sub:#9aa1b0;--line:#2b2f39;
+  --tag:#ff4d74;--tagInk:#16070b;--soft:#3a1720;--ok:#4fd393;--okSoft:#12301f;--warn:#f0b35a;--warnSoft:#33240f;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+a{color:inherit}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tag);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:14px;padding-block:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo b{font-family:var(--display);font-weight:400;font-size:24px;letter-spacing:.02em}
+.logo small{font-size:11.5px;color:var(--sub);line-height:1.3}
+.hole{width:22px;height:22px;border-radius:5px 50% 50% 5px;background:var(--tag);position:relative;flex:none;transform:rotate(-8deg)}
+.hole::after{content:"";position:absolute;left:5px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--paper)}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px;margin-left:auto}
+.seg button{border:0;background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:700;font-size:14px;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+.notice{margin-top:12px;padding:10px 14px;border-radius:var(--r);background:var(--warnSoft);color:var(--warn);font-size:13px;font-weight:500}
+.notice[hidden]{display:none}
+
+.lead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:18px 6px}
+.lead h1{font-family:var(--display);font-weight:400;font-size:clamp(22px,4vw,30px);margin:0;text-wrap:balance;line-height:1.3}
+.lead h1 em{font-style:normal;color:var(--tag)}
+.stamp{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start;padding-block:8px 40px}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+.filters{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.search{position:relative;display:flex;align-items:center}
+.search svg{position:absolute;left:12px;width:18px;height:18px;color:var(--sub);pointer-events:none}
+.search input{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:9px 40px 9px 38px;font-size:15px;-webkit-appearance:none;appearance:none}
+.search input::placeholder{color:var(--sub)}
+.search input:focus{border-color:var(--ink);outline:none}
+.search input::-webkit-search-cancel-button{display:none}
+.search .clr{position:absolute;right:6px;border:0;background:transparent;color:var(--sub);cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1}
+.search .clr:hover{background:var(--bg);color:var(--ink)}
+.cats{display:flex;gap:0;border-bottom:1px solid var(--line);overflow-x:auto}
+.cats button{border:0;background:transparent;padding:8px 14px 9px;font-weight:700;font-size:14px;color:var(--sub);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-1px}
+.cats button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--tag)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:var(--paper);padding:5px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap;display:flex;gap:5px;align-items:center}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.chip .st{color:var(--tag)}
+.chip[aria-pressed="true"] .st{color:var(--tag)}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.frow label{font-size:13px;color:var(--sub);display:flex;gap:6px;align-items:center}
+.frow select{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:5px 8px;font-size:13.5px}
+.count{margin-left:auto;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+@media (max-width:440px){.grid{grid-template-columns:1fr 1fr;gap:10px}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative}
+.ph{aspect-ratio:1;background:var(--bg);display:block;position:relative;max-width:100%}
+.ph img,.ph svg{width:100%;height:100%;object-fit:cover;display:block}
+.off{position:absolute;left:8px;top:8px;background:var(--tag);color:var(--tagInk);font-family:var(--display);font-size:17px;line-height:1;padding:7px 9px 6px 14px;border-radius:4px 14px 14px 4px;letter-spacing:.01em}
+.off::before{content:"";position:absolute;left:5px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:var(--tagInk);opacity:.85}
+.off small{font-family:var(--body);font-weight:700;font-size:11px;margin-left:1px}
+.new{position:absolute;right:8px;top:8px;background:var(--ink);color:var(--paper);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
+.cb{padding:10px 11px 12px;display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.shop{font-size:11.5px;color:var(--sub);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.fav{border:0;background:transparent;cursor:pointer;padding:0 2px;font-size:15px;line-height:1;color:var(--sub)}
+.fav[aria-pressed="true"]{color:var(--tag)}
+.nm{font-size:13.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}
+.pr{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin-top:2px;font-variant-numeric:tabular-nums}
+.pr b{font-size:19px;color:var(--tag)}
+.pr s{font-size:12.5px;color:var(--sub);order:-1}
+
+.why{font-size:11.5px;color:var(--sub);line-height:1.4}
+.why .age{white-space:nowrap}
+.seller{font-size:11.5px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.moreWrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 4px}
+.moreWrap button{border:1px solid var(--ink);background:var(--paper);border-radius:999px;padding:10px 28px;font-weight:700;cursor:pointer}
+.moreWrap button:hover{background:var(--ink);color:var(--paper)}
+.moreWrap small{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
+.go{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:6px}
+.go a{flex:1;text-align:center;text-decoration:none;font-weight:700;font-size:13px;border:1px solid var(--ink);border-radius:8px;padding:6px 8px}
+.go a:hover{background:var(--ink);color:var(--paper)}
+.pr-mark{font-size:10.5px;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:1px 4px;flex:none}
+.empty{grid-column:1/-1;padding:40px 16px;text-align:center;color:var(--sub);background:var(--paper);border:1px dashed var(--line);border-radius:var(--r)}
+
+aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
+@media (max-width:900px){aside{position:static}}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.box h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.box h2 small{font-size:11.5px;color:var(--sub);font-weight:500}
+.cal{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cal li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.cal li:first-child{border-top:0;padding-top:2px}
+.d{text-align:center;font-variant-numeric:tabular-nums;line-height:1.1}
+.d b{display:block;font-family:var(--display);font-weight:400;font-size:20px}
+.d span{font-size:11px;color:var(--sub)}
+.ev{min-width:0}
+.ev p{margin:0;font-size:13.5px;font-weight:700;line-height:1.4}
+.ev div{font-size:12px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px}
+.pill{font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px}
+.pill.now{background:var(--soft);color:var(--tag)}
+.pill.soon{background:var(--okSoft);color:var(--ok)}
+.pill.end{background:var(--bg);color:var(--sub)}
+.ev a.src{color:var(--sub);font-size:11.5px}
+.pill.guess{background:var(--warnSoft);color:var(--warn)}
+.favs{display:flex;flex-wrap:wrap;gap:6px}
+.favs .chip{font-size:12.5px}
+.hint{font-size:12.5px;color:var(--sub);margin:0}
+
+footer{border-top:1px solid var(--line);background:var(--paper)}
+footer .wrap{padding-block:18px 26px;font-size:12px;color:var(--sub);display:flex;flex-direction:column;gap:6px}
+footer p{margin:0;max-width:70ch}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:hover{transform:translateY(-2px)}}
+</style>
+
+<header>
+  <div class="wrap hrow">
+    <a class="logo" href="#top" aria-label="ネサゲ トップ"><span class="hole" aria-hidden="true"></span><b>ネサゲ</b><small>セレクトショップと<br>人気ブランドの値下げ</small></a>
+    <div class="seg" role="group" aria-label="メンズ・レディース">
+      <button id="gAll" data-g="all" aria-pressed="true">すべて</button>
+      <button id="gMen" data-g="men" aria-pressed="false">メンズ</button>
+      <button id="gWomen" data-g="women" aria-pressed="false">レディース</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <p class="notice" id="demo" hidden></p>
+  <div class="lead">
+    <h1>今日の<em>値下げ</em>、まとめました</h1>
+    <span class="stamp" id="stamp">読み込み中…</span>
+  </div>
+  <div class="layout">
+    <section aria-label="値下げ中の商品">
+      <div class="filters">
+        <div class="search" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="q" placeholder="商品をさがす（例：ニット、コート 黒）" aria-label="商品をさがす" autocomplete="off" enterkeyhint="search">
+          <button class="clr" id="qClr" type="button" aria-label="検索の文字を消す" hidden>✕</button>
+        </div>
+        <div class="cats" role="group" aria-label="種類でしぼる">
+          <button data-cat="all" aria-pressed="true">すべて</button><button data-cat="select" aria-pressed="false">セレクトショップ</button><button data-cat="brand" aria-pressed="false">人気ブランド</button>
+        </div>
+        <div class="chips" id="shops" role="group" aria-label="ショップでしぼる"></div>
+        <div class="frow">
+          <label for="minOff">割引</label>
+          <select id="minOff"><option value="0">すべて</option><option value="20">20%以上</option><option value="30" selected>30%以上</option><option value="50">50%以上</option></select>
+          <label for="maxPrice">値段</label>
+          <select id="maxPrice"><option value="0">上限なし</option><option value="5000">5,000円まで</option><option value="10000">1万円まで</option><option value="20000">2万円まで</option></select>
+          <label for="sort">ならび</label>
+          <select id="sort"><option value="off">割引が大きい順</option><option value="cheap">安い順</option><option value="new">新着順</option></select>
+          <span class="count" id="count"></span>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="moreWrap" id="moreWrap" hidden><button type="button" id="more">もっと見る</button><small id="moreNote"></small></div>
+    </section>
+    <aside>
+      <div class="box">
+        <h2>セールカレンダー <small id="calNote"></small></h2>
+        <ul class="cal" id="cal"></ul>
+      </div>
+      <div class="box">
+        <h2>お気に入りショップ</h2>
+        <div class="favs" id="favs"></div>
+        <p class="hint" id="favHint">商品の ♡ を押すと、そのお店をお気に入りにできます。ネサゲに新しく載った商品には「新着」が付きます。</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>PR</b>：このサイトはアフィリエイト広告（楽天アフィリエイト）を利用しています。リンク先で買い物をすると、サイトに紹介料が入ることがあります。</p>
+    <p>値段と在庫は表示した時刻のものです。今の値段は必ずリンク先のお店で確認してください。割引率は、お店が商品名に書いている「○%OFF」の表記をそのまま使っています。取り消し線の「約○円」は、その表記から計算した目安の元の値段です（お店の定価や、実際に売られていた値段を確かめたものではありません）。「掲載○日目」は、ネサゲがその商品を見つけてからの日数です。商品情報と画像は楽天ウェブサービスから取得しています。</p>
+    <p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
+    <p>「人気ブランド」は、楽天ファッションやブランドの公式ショップなど、楽天市場の中で信頼できるお店が売っている商品だけを載せています。各商品の「販売」が、実際に売っているお店です。</p>
+    <p>ショップ名・ブランド名は各社のものです。このサイトは各ショップの公式サイトではありません。</p>
+  </div>
+</footer>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- 見本データ（架空のお店・架空の商品） ---------- */
+function sample(){
+  const shops={men:['ノースレーン','アトリエ ミナト','KOMOREBI STORE','ハーバーストック'],women:['ルピナ ガーデン','mellow days','アトリエ ミナト','ソラノハ']};
+  const it={men:[['ウールブレンド ステンカラーコート',29800,'coat','#5b6577'],['ヘビーウェイト スウェット パーカー',9900,'hood','#8a7a66'],['ワイドストレート デニム',12100,'pants','#3b5378'],['オックスフォード ボタンダウンシャツ',7700,'shirt','#c9d5e6'],['中わた キルティング ベスト',13200,'vest','#3f4d3f'],['ローゲージ クルーネック ニット',11000,'knit','#b8a58a'],['ナイロン 2WAY ショルダーバッグ',6600,'bag','#26282d'],['テーパード イージーパンツ',8800,'pants','#6d6a62']],
+          women:[['ボリュームスリーブ ブラウス',8580,'shirt','#efe6dc'],['ロング プリーツスカート',10450,'skirt','#7d6f8f'],['ショート丈 ダウンジャケット',24200,'coat','#2f3540'],['カシミヤタッチ カーディガン',9900,'knit','#c98f8f'],['ハイウエスト ワイドパンツ',9350,'pants','#a99b84'],['キルティング トートバッグ',5940,'bag','#4c5563'],['ニット ワンピース',14300,'dress','#6b4e4e'],['リブ タートルネック',4950,'knit','#e7e2d8']]};
+  const out=[];let n=0;
+  for(const g of ['men','women'])it[g].forEach((x,i)=>{const off=[30,40,50,20,60,30,35,45][i];const was=x[1],now=Math.round(was*(1-off/100)/10)*10;
+    out.push({id:'s'+(n++),g,shop:shops[g][i%4],name:x[0],price:now,was,off,src:'history',since:Date.now()-((i*7)%30)*3600e3,img:null,shape:x[2],col:x[3],url:'#'})});
+  const now=new Date(),d=k=>{const z=new Date(now);z.setDate(z.getDate()+k);return z.toISOString().slice(0,10)};
+  const cal=[{name:'ノースレーン 冬のプレセール',from:d(-2),to:d(3),shop:'ノースレーン',note:'最大40%オフ（見本）'},
+    {name:'ルピナ ガーデン 会員先行セール',from:d(2),to:d(6),shop:'ルピナ ガーデン',note:'会員登録が必要（見本）'},
+    {name:'楽天市場のポイントアップ期間',from:d(5),to:d(9),shop:'',note:'日付は見本です。本番は公式の発表から入れます'},
+    {name:'KOMOREBI STORE 週末タイムセール',from:d(-6),to:d(-4),shop:'KOMOREBI STORE',note:'終了（見本）'}];
+  return {items:out,calendar:cal,updated:Date.now(),demo:true};
+}
+
+/* 商品画像がないときの絵（服のシルエット） */
+function art(shape,col){
+  const P={coat:'M70 40 L100 30 L130 40 L150 70 L140 170 L60 170 L50 70 Z M100 30 L100 170',hood:'M65 55 Q100 20 135 55 L160 85 L145 100 L140 165 L60 165 L55 100 L40 85 Z',pants:'M70 35 H130 L140 170 H110 L100 80 L90 170 H60 Z',shirt:'M70 40 L90 32 L100 45 L110 32 L130 40 L160 70 L145 85 L135 75 L135 165 H65 V75 L55 85 L40 70 Z',vest:'M75 35 L95 40 L100 60 L105 40 L125 35 L135 70 L135 165 H65 L65 70 Z',knit:'M68 42 Q100 30 132 42 L162 80 L148 95 L136 82 L136 162 H64 V82 L52 95 L38 80 Z',bag:'M60 80 H140 L148 165 H52 Z M78 80 Q78 45 100 45 Q122 45 122 80',skirt:'M78 40 H122 L150 165 H50 Z',dress:'M80 32 L92 38 L100 50 L108 38 L120 32 L128 70 L150 168 H50 L72 70 Z'};
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="商品のイメージ"><rect width="200" height="200" fill="${col}" opacity=".16"/><path d="${P[shape]||P.shirt}" fill="${col}" stroke="rgba(0,0,0,.18)" stroke-width="2" stroke-linejoin="round"/></svg>`;
+}
+
+/* 商品名から服の形を選ぶ（画像が出せないときの代わりの絵） */
+function shapeOf(n){n=String(n||'');const R=[[/バッグ|トート|ショルダー|リュック|ポーチ|財布|ウォレット/,'bag'],[/ワンピース|ドレス/,'dress'],[/スカート/,'skirt'],[/パーカー|フーディ/,'hood'],[/ベスト|ジレ/,'vest'],[/コート|ジャケット|ブルゾン|アウター|ダウン/,'coat'],[/ニット|セーター|カーディガン/,'knit'],[/パンツ|デニム|スラックス|ジーンズ|チノ/,'pants']];for(const[r,k]of R)if(r.test(n))return k;return 'shirt'}
+const PAL=['#5b6577','#8a7a66','#3b5378','#7d6f8f','#3f4d3f','#b8a58a','#6b4e4e','#a99b84'];
+const colOf=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.dataset.shape){const w=document.createElement('span');w.innerHTML=art(t.dataset.shape,t.dataset.col);const svg=w.firstElementChild;if(svg)t.replaceWith(svg)}},true);
+
+/* ---------- 状態 ---------- */
+let D=null;
+const PAGE=60;const st={limit:PAGE,cat:'all',q:'',g:ls.get('ns_g','all'),shop:'',minOff:ls.get('ns_min','30'),maxPrice:'0',sort:'off'};
+let favs=ls.get('ns_favs',[]);
+const seenAt=ls.get('ns_seen',0);
+
+function readFeed(){try{const j=JSON.parse(document.getElementById('feed').textContent);return j&&typeof j==='object'?j:{}}catch(e){return {}}}
+async function fetchFeed(){try{const r=await fetch('feed.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});if(!r.ok)return null;const j=await r.json();return j&&Array.isArray(j.items)?j:null}catch(e){return null}}
+async function load(){
+  const F=(location.protocol.startsWith('http')&&!/claude/.test(location.hostname)?await fetchFeed():null)||readFeed(),S=sample();
+  const realItems=Array.isArray(F.items)&&F.items.length>0;
+  const realCal=Array.isArray(F.calendar)&&F.updated;
+  D={items:realItems?F.items:S.items,calendar:realCal?F.calendar:S.calendar,updated:F.updated?Date.parse(F.updated):Date.now(),demoItems:!realItems,demoCal:!realCal};
+  D.demo=D.demoItems&&D.demoCal;
+  const n=$('#demo');
+  n.hidden=!D.demoItems;
+  n.innerHTML=D.demoCal?'いまは<b>サンプル表示</b>です。お店・商品・セール予定はすべて見本用の架空のものです。'
+    :'商品はまだ<b>見本</b>です（架空のお店・商品）。右の<b>セールカレンダーは本物</b>で、毎日自動で更新しています。';
+  const u=new Date(D.updated),hm=`${u.getMonth()+1}月${u.getDate()}日 ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
+  $('#stamp').textContent=D.demo?'見本データ':`${hm} に自動更新`;
+  render();ls.set('ns_seen',Date.now());
+}
+
+const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u30a1-\u30f6]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).replace(/[・\s]+/g,' ');
+const SYN=Object.fromEntries(Object.entries({'黒':'ブラック','白':'ホワイト オフホワイト','紺':'ネイビー','灰':'グレー','茶':'ブラウン','赤':'レッド','青':'ブルー','緑':'グリーン','黄':'イエロー','ピンク':'ピンク','ベージュ':'ベージュ','メンズ':'MEN','レディース':'WOMEN'}).map(([k,v])=>[norm(k),norm(v).split(' ')]));
+function hit(x){if(!st.q)return true;const t=norm(x.name+' '+x.shop),tc=t.replace(/ /g,'');return norm(st.q).split(' ').filter(Boolean).every(w=>{const ws=[w,...(SYN[w]||[])];return ws.some(v=>t.includes(v)||tc.includes(v))})}
+const inCat=x=>st.cat==='all'||(x.cat||'select')===st.cat;
+function list(){
+  let L=D.items.filter(x=>hit(x)&&inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')&&(!st.shop||(st.shop==='♡'?favs.includes(x.shop):x.shop===st.shop))&&x.off>=+st.minOff&&(!+st.maxPrice||x.price<=+st.maxPrice));
+  const k={off:(a,b)=>b.off-a.off,cheap:(a,b)=>a.price-b.price,new:(a,b)=>b.since-a.since}[st.sort];return L.sort(k);
+}
+function render(keep){
+  if(keep!==true)st.limit=PAGE;
+  ['gAll','gMen','gWomen'].forEach(id=>{const b=$('#'+id);b.setAttribute('aria-pressed',String(b.dataset.g===st.g))});
+  $('#minOff').value=st.minOff;$('#maxPrice').value=st.maxPrice;$('#sort').value=st.sort;
+  document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cat===st.cat)));
+  const inG=D.items.filter(x=>inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')),shops=[...new Set(inG.map(x=>x.shop))];
+  if(st.shop&&st.shop!=='♡'&&!shops.includes(st.shop))st.shop='';
+  $('#shops').innerHTML=[`<button class="chip" data-shop="" aria-pressed="${!st.shop}">すべてのお店</button>`,favs.length?`<button class="chip" data-shop="♡" aria-pressed="${st.shop==='♡'}"><span class="st">♥</span>お気に入り</button>`:'',...shops.map(s=>`<button class="chip" data-shop="${esc(s)}" aria-pressed="${st.shop===s}">${favs.includes(s)?'<span class="st">♥</span>':''}${esc(s)}</button>`)].join('');
+  const L=list();$('#count').textContent=`${L.length}件`;
+  const V=L.slice(0,st.limit),rest=L.length-V.length;
+  $('#moreWrap').hidden=rest<=0;$('#moreNote').textContent=rest>0?`あと${rest}件`:'';
+  const DAY=864e5,ref=D.updated||Date.now(),ageOf=x=>Math.max(0,Math.floor((ref-(x.since||ref))/DAY));
+  const newCount=D.items.filter(x=>ageOf(x)<1).length,showNew=!D.demoItems&&newCount<=D.items.length*0.5;
+  $('#grid').innerHTML=L.length?V.map(x=>{
+    const age=ageOf(x),isNew=showNew&&age<1;
+    const why=x.src==='history'&&x.was?`${dateJ(x.wasAt||x.since)}の記録 ${yen(x.was)} から値下げ`:x.src==='name'?`お店の表示（${x.off}%OFF）から計算`:'';
+    const ageTxt=D.demoItems?'':`掲載${age+1}日目`;
+    const seller=x.cat==='brand'&&x.seller?`<div class="seller">販売：${esc(x.seller)}</div>`:'';
+    return `<article class="card">
+      <a class="ph" href="${esc(x.url)}" target="_blank" rel="sponsored noopener">${x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-shape="${shapeOf(x.name)}" data-col="${colOf(x.id)}">`:art(x.shape,x.col||'#778')}<span class="off">${x.off}<small>%OFF</small></span>${isNew?'<span class="new">新着</span>':''}</a>
+      <div class="cb">
+        <div class="shop"><span>${esc(x.shop)}</span><button class="fav" data-fav="${esc(x.shop)}" aria-pressed="${favs.includes(x.shop)}" aria-label="${esc(x.shop)}をお気に入り">${favs.includes(x.shop)?'♥':'♡'}</button></div>
+        <div class="nm">${esc(x.name)}</div>
+        <div class="pr"><b>${yen(x.price)}</b>${x.was&&x.src==='history'?`<s>${yen(x.was)}</s>`:x.was&&x.src==='name'?`<s aria-label="元の値段の目安 約${yen(x.was)}">約${yen(x.was)}</s>`:''}</div>
+        ${why||ageTxt?`<div class="why">${esc(why)}${why&&ageTxt?' ・ ':''}${ageTxt?`<span class="age">${ageTxt}</span>`:''}</div>`:''}
+        ${seller}
+        <div class="go"><a href="${esc(x.url)}" target="_blank" rel="sponsored noopener">お店で見る</a><span class="pr-mark">PR</span></div>
+      </div></article>`}).join(''):`<div class="empty">${st.q?`「${esc(st.q)}」に合う値下げ商品は、今はありません。ことばを変えるか、割引や値段の条件をゆるめてみてください。`:'この条件の値下げ商品は、今はありません。割引や値段の条件をゆるめてみてください。'}</div>`;
+  renderCal();renderFavs();
+}
+const dateJ=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()}`};
+function renderCal(){
+  const z=new Date(),today=`${z.getFullYear()}-${String(z.getMonth()+1).padStart(2,'0')}-${String(z.getDate()).padStart(2,'0')}`;
+  const C=(D.calendar||[]).filter(e=>e&&e.name&&/^\d{4}-\d{2}-\d{2}$/.test(e.from||'')&&/^\d{4}-\d{2}-\d{2}$/.test(e.to||'')).map(e=>({...e,state:e.to<today?'end':e.from<=today?'now':'soon'})).sort((a,b)=>({now:0,soon:1,end:2}[a.state]-{now:0,soon:1,end:2}[b.state])||a.from.localeCompare(b.from));
+  const W='日月火水木金土';
+  $('#calNote').textContent=D.demoCal?'見本':'毎日自動更新';
+  $('#cal').innerHTML=C.length?C.map(e=>{const f=new Date(e.from+'T00:00'),t=new Date(e.to+'T00:00');
+    return `<li><div class="d"><b>${f.getMonth()+1}/${f.getDate()}</b><span>(${W[f.getDay()]})〜</span></div><div class="ev"><p>${esc(e.name)}</p><div><span class="pill ${e.state}">${{now:'開催中',soon:'まもなく',end:'終了'}[e.state]}</span>${e.guess?'<span class="pill guess">予想</span>':''}${t.getMonth()+1}/${t.getDate()}まで${e.note?' ・ '+esc(e.note):''}${/^https:\/\//.test(e.url||'')?` <a class="src" href="${esc(e.url)}" target="_blank" rel="noopener">発表元</a>`:''}</div></div></li>`}).join(''):'<li><div></div><div class="ev"><p>予定はまだありません</p></div></li>';
+}
+function renderFavs(){
+  $('#favs').innerHTML=favs.map(s=>`<button class="chip" data-unfav="${esc(s)}" aria-label="${esc(s)}をお気に入りから外す"><span class="st">♥</span>${esc(s)} ✕</button>`).join('');
+  $('#favHint').hidden=favs.length>0;
+}
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-cat]');if(c){st.cat=c.dataset.cat;st.shop='';render();return}
+  const g=e.target.closest('[data-g]');if(g){st.g=g.dataset.g;ls.set('ns_g',st.g);render();return}
+  const s=e.target.closest('[data-shop]');if(s){st.shop=s.dataset.shop;render();return}
+  const f=e.target.closest('[data-fav]');if(f){const k=f.dataset.fav;favs=favs.includes(k)?favs.filter(x=>x!==k):[...favs,k];ls.set('ns_favs',favs);render(true);return}
+  const u=e.target.closest('[data-unfav]');if(u){favs=favs.filter(x=>x!==u.dataset.unfav);ls.set('ns_favs',favs);if(st.shop==='♡'&&!favs.length)st.shop='';render();return}
+  const a=e.target.closest('a[href="#"]');if(a){e.preventDefault()}
+});
+$('#minOff').addEventListener('change',e=>{st.minOff=e.target.value;ls.set('ns_min',st.minOff);render()});
+$('#maxPrice').addEventListener('change',e=>{st.maxPrice=e.target.value;render()});
+$('#sort').addEventListener('change',e=>{st.sort=e.target.value;render()});
+$('#more').addEventListener('click',()=>{st.limit+=PAGE;render(true)});
+let qt=0;
+$('#q').addEventListener('input',e=>{st.q=e.target.value.trim();$('#qClr').hidden=!e.target.value;clearTimeout(qt);qt=setTimeout(render,150)});
+$('#q').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(qt);render();e.target.blur()}});
+$('#qClr').addEventListener('click',()=>{const i=$('#q');i.value='';st.q='';$('#qClr').hidden=true;render();i.focus()});
+load();
+})();
+</script>
+</body></html>
