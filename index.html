@@ -103,6 +103,28 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .moreWrap small{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
 .go{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:6px}
 .go a{flex:1;text-align:center;text-decoration:none;font-weight:700;font-size:13px;border:1px solid var(--ink);border-radius:8px;padding:6px 8px}
+.save{flex:none;width:34px;height:32px;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer;display:grid;place-items:center;color:var(--sub);padding:0}
+.save svg{width:16px;height:16px}
+.save[aria-pressed="true"]{border-color:var(--tag);color:var(--tag);background:var(--soft)}
+.save[aria-pressed="true"] svg path{fill:currentColor}
+.was{font-size:11.5px;color:var(--tag);font-weight:700}
+.drops{margin-top:12px;background:var(--paper);border:1px solid var(--tag);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.drops h2{margin:0;font-size:15px;line-height:1.4;text-wrap:balance}
+.drops h2 em{font-style:normal;color:var(--tag)}
+.drops ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.drops li a{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:center;text-decoration:none}
+.drops .th{width:48px;height:48px;border-radius:6px;overflow:hidden;background:var(--bg)}
+.drops .th img,.drops .th svg{width:100%;height:100%;object-fit:cover;display:block}
+.drops .t{min-width:0}
+.drops .t span{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drops .t b{font-size:13.5px;font-variant-numeric:tabular-nums}
+.drops .t b s{color:var(--sub);font-weight:400;margin-right:4px}
+.drops .t b em{font-style:normal;color:var(--tag)}
+.drops .gone{font-size:12.5px;color:var(--sub);margin:0}
+.drops .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drops button{border:1px solid var(--ink);background:var(--paper);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer}
+.drops button.pri{background:var(--ink);color:var(--paper)}
+.drops small{font-size:11.5px;color:var(--sub);flex-basis:100%}
 .go a:hover{background:var(--ink);color:var(--paper)}
 .pr-mark{font-size:10.5px;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:1px 4px;flex:none}
 .empty{grid-column:1/-1;padding:40px 16px;text-align:center;color:var(--sub);background:var(--paper);border:1px dashed var(--line);border-radius:var(--r)}
@@ -150,6 +172,7 @@ footer p{margin:0;max-width:70ch}
 
 <main class="wrap" id="top">
   <p class="notice" id="demo" hidden></p>
+  <section class="drops" id="drops" aria-live="polite" hidden></section>
   <div class="lead">
     <h1>今日の<em>値下げ</em>、まとめました</h1>
     <span class="stamp" id="stamp">読み込み中…</span>
@@ -163,7 +186,7 @@ footer p{margin:0;max-width:70ch}
           <button class="clr" id="qClr" type="button" aria-label="検索の文字を消す" hidden>✕</button>
         </div>
         <div class="cats" role="group" aria-label="種類でしぼる">
-          <button data-cat="all" aria-pressed="true">すべて</button><button data-cat="select" aria-pressed="false">セレクトショップ</button><button data-cat="brand" aria-pressed="false">人気ブランド</button>
+          <button data-cat="all" aria-pressed="true">すべて</button><button data-cat="select" aria-pressed="false">セレクトショップ</button><button data-cat="brand" aria-pressed="false">人気ブランド</button><button data-cat="saved" aria-pressed="false" id="savedTab">保存した商品</button>
         </div>
         <div class="chips" id="shops" role="group" aria-label="ショップでしぼる"></div>
         <div class="frow">
@@ -187,7 +210,7 @@ footer p{margin:0;max-width:70ch}
       <div class="box">
         <h2>お気に入りショップ</h2>
         <div class="favs" id="favs"></div>
-        <p class="hint" id="favHint">商品の ♡ を押すと、そのお店をお気に入りにできます。ネサゲに新しく載った商品には「新着」が付きます。</p>
+        <p class="hint" id="favHint">お店の名前の横の ♡ で、そのお店をお気に入りにできます。商品の「保存」ボタンで保存した商品は、値下げするとページの上でお知らせします。</p>
       </div>
     </aside>
   </div>
@@ -196,7 +219,7 @@ footer p{margin:0;max-width:70ch}
 <footer>
   <div class="wrap">
     <p><b>PR</b>：このサイトはアフィリエイト広告（楽天アフィリエイト）を利用しています。リンク先で買い物をすると、サイトに紹介料が入ることがあります。</p>
-    <p>値段と在庫は表示した時刻のものです。今の値段は必ずリンク先のお店で確認してください。割引率は、お店が商品名に書いている「○%OFF」の表記をそのまま使っています。取り消し線の「約○円」は、その表記から計算した目安の元の値段です（お店の定価や、実際に売られていた値段を確かめたものではありません）。「掲載○日目」は、ネサゲがその商品を見つけてからの日数です。商品情報と画像は楽天ウェブサービスから取得しています。</p>
+    <p>値段と在庫は表示した時刻のものです。今の値段は必ずリンク先のお店で確認してください。割引率は、お店が商品名に書いている「○%OFF」の表記をそのまま使っています。取り消し線の「約○円」は、その表記から計算した目安の元の値段です（お店の定価や、実際に売られていた値段を確かめたものではありません）。「掲載○日目」は、ネサゲがその商品を見つけてからの日数です。お気に入りと保存した商品は、この端末のブラウザの中だけに記録されます（ほかの端末とは共有されず、ネサゲには送られません）。商品情報と画像は楽天ウェブサービスから取得しています。</p>
     <p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
     <p>「人気ブランド」は、楽天ファッションやブランドの公式ショップなど、楽天市場の中で信頼できるお店が売っている商品だけを載せています。各商品の「販売」が、実際に売っているお店です。</p>
     <p>ショップ名・ブランド名は各社のものです。このサイトは各ショップの公式サイトではありません。</p>
@@ -242,6 +265,10 @@ document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&
 let D=null;
 const PAGE=60;const st={limit:PAGE,cat:'all',q:'',g:ls.get('ns_g','all'),shop:'',minOff:ls.get('ns_min','30'),maxPrice:'0',sort:'off'};
 let favs=ls.get('ns_favs',[]);
+let saved=ls.get('ns_saved',{});if(!saved||typeof saved!=='object'||Array.isArray(saved))saved={};
+const SAVE_MAX=100;
+const putSaved=()=>ls.set('ns_saved',saved);
+const BM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
 const seenAt=ls.get('ns_seen',0);
 
 function readFeed(){try{const j=JSON.parse(document.getElementById('feed').textContent);return j&&typeof j==='object'?j:{}}catch(e){return {}}}
@@ -260,22 +287,62 @@ async function load(){
     :'商品はまだ<b>見本</b>です（架空のお店・商品）。右の<b>セールカレンダーは本物</b>で、毎日自動で更新しています。';
   const u=new Date(D.updated),hm=`${u.getMonth()+1}月${u.getDate()}日 ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')}`;
   $('#stamp').textContent=D.demo?'見本データ':`${hm} に自動更新`;
-  render();ls.set('ns_seen',Date.now());
+  checkSaved();render();ls.set('ns_seen',Date.now());
 }
 
 const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u30a1-\u30f6]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).replace(/[・\s]+/g,' ');
 const SYN=Object.fromEntries(Object.entries({'黒':'ブラック','白':'ホワイト オフホワイト','紺':'ネイビー','灰':'グレー','茶':'ブラウン','赤':'レッド','青':'ブルー','緑':'グリーン','黄':'イエロー','ピンク':'ピンク','ベージュ':'ベージュ','メンズ':'MEN','レディース':'WOMEN'}).map(([k,v])=>[norm(k),norm(v).split(' ')]));
 function hit(x){if(!st.q)return true;const t=norm(x.name+' '+x.shop),tc=t.replace(/ /g,'');return norm(st.q).split(' ').filter(Boolean).every(w=>{const ws=[w,...(SYN[w]||[])];return ws.some(v=>t.includes(v)||tc.includes(v))})}
-const inCat=x=>st.cat==='all'||(x.cat||'select')===st.cat;
+const inCat=x=>st.cat==='all'||(st.cat==='saved'?!!saved[x.id]:(x.cat||'select')===st.cat);
+/* 保存した商品の値下げチェック（この端末の中だけで計算） */
+let drops=[],gone=[];
+function checkSaved(){
+  drops=[];gone=[];if(D.demoItems)return;
+  const byId=new Map(D.items.map(x=>[x.id,x]));let changed=false;
+  for(const[id,v]of Object.entries(saved)){
+    const x=byId.get(id);
+    if(!x){gone.push({id,...v});continue}
+    if(x.price<v.lp)drops.push({x,from:v.lp});
+    else if(x.price>v.lp){v.lp=x.price;changed=true}
+  }
+  if(changed)putSaved();
+  drawDrops();
+}
+function drawDrops(){
+  const el=$('#drops');
+  if(!drops.length&&!gone.length){el.hidden=true;el.innerHTML='';return}
+  const thumb=x=>x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-shape="${shapeOf(x.name||x.n)}" data-col="${colOf(x.id)}">`:art(shapeOf(x.name||x.n),colOf(x.id));
+  el.hidden=false;
+  el.innerHTML=`<h2>${drops.length?`保存した商品のうち<em>${drops.length}件</em>が、前に見たときより安くなりました`:'保存した商品についてのお知らせ'}</h2>
+    ${drops.length?`<ul>${drops.map(({x,from})=>`<li><a href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${thumb(x)}</span><span class="t"><span>${esc(x.shop)}　${esc(x.name)}</span><b><s>${yen(from)}</s>→ <em>${yen(x.price)}</em>（${yen(from-x.price)}安く）</b></span></a></li>`).join('')}</ul>`:''}
+    ${gone.length?`<p class="gone">${gone.length}件は、いまのネサゲに載っていません（売り切れたか、値下げが終わった可能性があります）：${gone.slice(0,3).map(g=>esc(g.n||'')).join('、')}${gone.length>3?' ほか':''}</p>`:''}
+    <div class="row"><button type="button" class="pri" data-ack="1">確認した</button>${drops.length?'<button type="button" data-cat="saved">保存した商品を見る</button>':''}
+    <small>「確認した」を押すと、今の値段を新しい基準にして、次に安くなったときにまたお知らせします。${gone.length?'載っていない商品は保存から外れます。':''}</small></div>`;
+}
+function ackDrops(){
+  for(const{x}of drops)if(saved[x.id])saved[x.id].lp=x.price;
+  for(const g of gone)delete saved[g.id];
+  putSaved();drops=[];gone=[];drawDrops();render(true);
+}
+function toggleSave(id){
+  if(saved[id]){delete saved[id]}else{
+    const x=D.items.find(i=>i.id===id);if(!x)return;
+    const keys=Object.keys(saved);if(keys.length>=SAVE_MAX){keys.sort((a,b)=>(saved[a].t||0)-(saved[b].t||0));delete saved[keys[0]]}
+    saved[id]={n:x.name,s:x.shop,p:x.price,lp:x.price,img:x.img||null,url:x.url,t:Date.now()};
+  }
+  putSaved();
+}
 function list(){
-  let L=D.items.filter(x=>hit(x)&&inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')&&(!st.shop||(st.shop==='♡'?favs.includes(x.shop):x.shop===st.shop))&&x.off>=+st.minOff&&(!+st.maxPrice||x.price<=+st.maxPrice));
+  const sv=st.cat==='saved';
+  let L=D.items.filter(x=>hit(x)&&inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')&&(!st.shop||(st.shop==='♡'?favs.includes(x.shop):x.shop===st.shop))&&(sv||x.off>=+st.minOff)&&(sv||!+st.maxPrice||x.price<=+st.maxPrice));
   const k={off:(a,b)=>b.off-a.off,cheap:(a,b)=>a.price-b.price,new:(a,b)=>b.since-a.since}[st.sort];return L.sort(k);
 }
 function render(keep){
   if(keep!==true)st.limit=PAGE;
   ['gAll','gMen','gWomen'].forEach(id=>{const b=$('#'+id);b.setAttribute('aria-pressed',String(b.dataset.g===st.g))});
   $('#minOff').value=st.minOff;$('#maxPrice').value=st.maxPrice;$('#sort').value=st.sort;
-  document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cat===st.cat)));
+  document.querySelectorAll('.cats [data-cat]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cat===st.cat)));
+  {const n=Object.keys(saved).length;$('#savedTab').textContent=n?`保存した商品（${n}）`:'保存した商品'}
   const inG=D.items.filter(x=>inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')),shops=[...new Set(inG.map(x=>x.shop))];
   if(st.shop&&st.shop!=='♡'&&!shops.includes(st.shop))st.shop='';
   $('#shops').innerHTML=[`<button class="chip" data-shop="" aria-pressed="${!st.shop}">すべてのお店</button>`,favs.length?`<button class="chip" data-shop="♡" aria-pressed="${st.shop==='♡'}"><span class="st">♥</span>お気に入り</button>`:'',...shops.map(s=>`<button class="chip" data-shop="${esc(s)}" aria-pressed="${st.shop===s}">${favs.includes(s)?'<span class="st">♥</span>':''}${esc(s)}</button>`)].join('');
@@ -297,8 +364,9 @@ function render(keep){
         <div class="pr"><b>${yen(x.price)}</b>${x.was&&x.src==='history'?`<s>${yen(x.was)}</s>`:x.was&&x.src==='name'?`<s aria-label="元の値段の目安 約${yen(x.was)}">約${yen(x.was)}</s>`:''}</div>
         ${why||ageTxt?`<div class="why">${esc(why)}${why&&ageTxt?' ・ ':''}${ageTxt?`<span class="age">${ageTxt}</span>`:''}</div>`:''}
         ${seller}
-        <div class="go"><a href="${esc(x.url)}" target="_blank" rel="sponsored noopener">お店で見る</a><span class="pr-mark">PR</span></div>
-      </div></article>`}).join(''):`<div class="empty">${st.q?`「${esc(st.q)}」に合う値下げ商品は、今はありません。ことばを変えるか、割引や値段の条件をゆるめてみてください。`:'この条件の値下げ商品は、今はありません。割引や値段の条件をゆるめてみてください。'}</div>`;
+        ${saved[x.id]&&x.price<saved[x.id].p?`<div class="was">保存したときより ${yen(saved[x.id].p-x.price)} 安い</div>`:''}
+        <div class="go"><a href="${esc(x.url)}" target="_blank" rel="sponsored noopener">お店で見る</a><button type="button" class="save" data-save="${esc(x.id)}" aria-pressed="${!!saved[x.id]}" aria-label="${saved[x.id]?'保存を外す':'この商品を保存して値下げを知らせてもらう'}" title="${saved[x.id]?'保存済み':'保存'}">${BM}</button><span class="pr-mark">PR</span></div>
+      </div></article>`}).join(''):`<div class="empty">${st.cat==='saved'&&!Object.keys(saved).length?'まだ保存した商品はありません。気になる商品の「保存」ボタン（しおりのマーク）を押すと、ここに集まります。値下げしたら、ページの上でお知らせします。':st.q?`「${esc(st.q)}」に合う値下げ商品は、今はありません。ことばを変えるか、割引や値段の条件をゆるめてみてください。`:'この条件の値下げ商品は、今はありません。割引や値段の条件をゆるめてみてください。'}</div>`;
   renderCal();renderFavs();
 }
 const dateJ=t=>{const d=new Date(t);return `${d.getMonth()+1}/${d.getDate()}`};
@@ -316,7 +384,9 @@ function renderFavs(){
 }
 
 document.addEventListener('click',e=>{
-  const c=e.target.closest('[data-cat]');if(c){st.cat=c.dataset.cat;st.shop='';render();return}
+  const sb=e.target.closest('[data-save]');if(sb){toggleSave(sb.dataset.save);render(true);return}
+  const ak=e.target.closest('[data-ack]');if(ak){ackDrops();return}
+  const c=e.target.closest('[data-cat]');if(c){if(c.closest('#drops'))$('.filters').scrollIntoView({behavior:'smooth',block:'start'});st.cat=c.dataset.cat;st.shop='';render();return}
   const g=e.target.closest('[data-g]');if(g){st.g=g.dataset.g;ls.set('ns_g',st.g);render();return}
   const s=e.target.closest('[data-shop]');if(s){st.shop=s.dataset.shop;render();return}
   const f=e.target.closest('[data-fav]');if(f){const k=f.dataset.fav;favs=favs.includes(k)?favs.filter(x=>x!==k):[...favs,k];ls.set('ns_favs',favs);render(true);return}
