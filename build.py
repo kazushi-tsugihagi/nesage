@@ -106,7 +106,7 @@ def card(x):
     img = (f'<img src="{esc(x["img"])}" alt="{esc(x.get("nm") or x["name"])}" loading="lazy" referrerpolicy="no-referrer" width="400" height="400">'
            if x.get("img") else "")
     was = f'<s>約{yen(x["was"])}</s>' if x.get("was") else ""
-    return f"""<article class="card"><a class="ph" href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">{img}<span class="off">{int(x['off'])}<small>%OFF</small></span></a>
+    return f"""<article class="card"><a class="ph" href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">{img}</a>
 <div class="cb"><div class="shop"><span>{esc(x['shop'])}</span></div><div class="nm">{esc(x.get('nm') or x['name'])}</div>
 <div class="pr"><b>{yen(x['price'])}</b>{was}</div><div class="why">お店の表示（{int(x['off'])}%OFF）から計算</div>{sz}{seller}
 <div class="go"><a href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">楽天で見る</a><span class="pr-mark">PR</span></div></div></article>"""

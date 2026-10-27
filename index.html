@@ -390,7 +390,7 @@ function render(keep){
     const ageTxt=D.demoItems?'':`掲載${age+1}日目`;
     const seller=(x.cat==='brand'||x.cat==='petit')&&x.seller?`<div class="seller">販売：${esc(x.seller)}</div>`:'';
     return `<article class="card">
-      <a class="ph" href="${esc(x.url)}" target="_blank" rel="sponsored noopener">${x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-shape="${shapeOf(x.name)}" data-col="${colOf(x.id)}">`:art(x.shape,x.col||'#778')}<span class="off">${x.off}<small>%OFF</small></span>${isNew?'<span class="new">新着</span>':''}</a>
+      <a class="ph" href="${esc(x.url)}" target="_blank" rel="sponsored noopener">${x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-shape="${shapeOf(x.name)}" data-col="${colOf(x.id)}">`:art(x.shape,x.col||'#778')}${isNew?'<span class="new">新着</span>':''}</a>
       <div class="cb">
         <div class="shop"><span>${esc(x.shop)}</span><button class="fav" data-fav="${esc(x.shop)}" aria-pressed="${favs.includes(x.shop)}" aria-label="${esc(x.shop)}をお気に入り">${favs.includes(x.shop)?'♥':'♡'}</button></div>
         <div class="nm">${esc(x.nm||x.name)}</div>
