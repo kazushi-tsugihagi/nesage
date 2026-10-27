@@ -77,9 +77,10 @@ FAMOUS = [
     ("FRED PERRY", ["FRED PERRY", "フレッドペリー"]),
     ("New Balance", ["New Balance", "ニューバランス"]),
     ("GAP", ["GAP", "ギャップ"]),
+    ("DIESEL", ["DIESEL", "ディーゼル"]),
 ]
 FAMOUS_SEARCH = ["MICHAEL KORS", "MARC JACOBS", "kate spade", "ARMANI EXCHANGE", "EMPORIO ARMANI",
-                 "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP"]
+                 "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP", "DIESEL OFF"]
 FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": 216131}  # 216131 = バッグ・小物・ブランド雑貨
 FAMOUS_PAGES = 2
 FAMOUS_MAX = 300
@@ -193,7 +194,7 @@ def collect(found, errors, seen, now_ms, cat, table, search, genres, pages, need
         for kw in search:
           for page in range(1, pages + 1):
             try:
-                j = call({"keyword": kw + " SALE", "genreId": genre, "hits": 30, "page": page,
+                j = call({"keyword": kw if re.search(r"\b(SALE|OFF)$", kw) else kw + " SALE", "genreId": genre, "hits": 30, "page": page,
                           "availability": 1, "imageFlag": 1})
             except Exception as e:
                 errors.append(f"{cat}/{g}/{kw}: {e}")
