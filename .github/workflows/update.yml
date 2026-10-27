@@ -25,11 +25,13 @@ jobs:
           # アフィリエイトIDはリンクに入って公開されるもので、秘密の鍵ではない
           RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID || '58ce850a.e727bb48.58ce850b.455a0373' }}
         run: python3 fetch.py feed.json
+      - name: ブランド別・カテゴリ別のページを作る
+        run: python3 build.py
       - name: 変わっていたら保存する
         run: |
           git config user.name "nesage-bot"
           git config user.email "nesage-bot@users.noreply.github.com"
-          git add feed.json
+          git add -A
           if git diff --cached --quiet; then echo "変更なし"; exit 0; fi
           git commit -m "商品を更新 $(TZ=Asia/Tokyo date +%m/%d)"
           git pull --rebase origin main
