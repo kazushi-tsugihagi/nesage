@@ -36,7 +36,7 @@ SEARCH = ["BEAMS", "UNITED ARROWS", "SHIPS", "JOURNAL STANDARD", "EDIFICE", "IEN
           "BEAUTY&YOUTH", "coen", "ADAM ET ROPE", "JUNRed", "Spick and Span"]
 PAGES = 3
 GENRES = {"men": 551177, "women": 100371}  # メンズファッション / レディースファッション
-MAX_ITEMS = 600
+MAX_ITEMS = 1200
 OFF_RE = re.compile(r"(\d{1,2})\s*[%％]\s*OFF", re.I)
 TAG_RE = re.compile(r"【[^】]*】|\[[^\]]*\]")
 
@@ -83,8 +83,8 @@ FAMOUS_SEARCH = ["MICHAEL KORS", "MARC JACOBS", "kate spade", "ARMANI EXCHANGE",
                  "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP", "DIESEL OFF"]
 FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": 216131}  # 216131 = バッグ・小物・ブランド雑貨
 FAMOUS_PAGES = 2
-FAMOUS_MAX = 300
-FAMOUS_PER_BRAND = 40
+FAMOUS_MAX = 800
+FAMOUS_PER_BRAND = 80
 TRUSTED_SHOPS = {"stylife", "stylifemen", "stylifekids"}  # 楽天ファッション
 
 
