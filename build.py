@@ -18,7 +18,7 @@ MIN_ITEMS = 6
 PER_PAGE = 120
 
 TYPES = [  # 上から順に判定する
-    ("goods", "小物", r"帽子|ビーニー|キャップ|ハット|ベルト|マフラー|ストール|手袋|グローブ|ソックス|靴下|ネクタイ"),
+    ("goods", "小物", r"帽子|ビーニー|キャップ|ハット|ベルト|マフラー|ストール|手袋|グローブ|ソックス|靴下|ネクタイ|水着|スイム|ルームウェア|パジャマ"),
     ("bag", "バッグ・小物", r"バッグ|トート|(?<!オフ)ショルダー|リュック|ポーチ|クラッチ|財布|ウォレット|カードケース"),
     ("shoes", "シューズ", r"スニーカー|シューズ|ブーツ|ローファー|サンダル|パンプス|ミュール"),
     ("dress", "ワンピース", r"ワンピース|(?<!パンツ )ドレス(?!パンツ|シャツ)|オールインワン|サロペット|ジャンパースカート"),
@@ -105,81 +105,141 @@ def card(x):
 COORD_BODY = r"""
 <nav class="crumb" aria-label="現在地"><a href="../">ネサゲ</a> › <span>予算でコーデを作る</span></nav>
 <div class="lead"><h1>予算でコーデを作る</h1><span class="stamp" id="cStamp"></span></div>
-<p class="intro">予算と、メンズかレディースかをえらぶと、いま値下げ中の商品から、トップス・パンツ（スカート）などを組み合わせたコーデを作ります。</p>
+<p class="intro">予算と好みをえらぶと、いま値下げ中の商品から、色の組み合わせまで考えたコーデを作ります。</p>
 <section class="cform" aria-label="コーデの条件">
   <div class="seg" role="group" aria-label="メンズ・レディース"><button type="button" data-cg="men" aria-pressed="true">メンズ</button><button type="button" data-cg="women" aria-pressed="false">レディース</button></div>
-  <div class="budgets" role="group" aria-label="予算">
+  <div class="frm"><span class="lb">予算</span><div class="opts" role="group" aria-label="予算">
     <button type="button" class="chip" data-cb="5000">5,000円</button><button type="button" class="chip" data-cb="10000" aria-pressed="true">1万円</button><button type="button" class="chip" data-cb="15000">1.5万円</button><button type="button" class="chip" data-cb="20000">2万円</button><button type="button" class="chip" data-cb="30000">3万円</button>
-    <label class="free" for="cBudget">自由に入力<input id="cBudget" type="number" inputmode="numeric" min="2000" max="200000" step="500" value="10000"><span>円まで</span></label>
-  </div>
+    <label class="free" for="cBudget">自由に<input id="cBudget" type="number" inputmode="numeric" min="2000" max="200000" step="500" value="10000"><span>円まで</span></label>
+  </div></div>
+  <div class="frm"><span class="lb">雰囲気</span><div class="opts" role="group" aria-label="雰囲気">
+    <button type="button" class="chip" data-cs="any" aria-pressed="true">おまかせ</button><button type="button" class="chip" data-cs="kirei">きれいめ</button><button type="button" class="chip" data-cs="casual">カジュアル</button><button type="button" class="chip" data-cs="sporty">スポーティ・ストリート</button>
+  </div></div>
+  <div class="frm"><span class="lb">色</span><div class="opts" role="group" aria-label="色の組み合わせ">
+    <button type="button" class="chip" data-cc="any" aria-pressed="true">おまかせ</button><button type="button" class="chip" data-cc="mono"><i class="dot" style="background:#1d1d1f"></i><i class="dot" style="background:#f4f4f2"></i>モノトーン</button><button type="button" class="chip" data-cc="earth"><i class="dot" style="background:#c9b08c"></i><i class="dot" style="background:#7a5a3c"></i>ベージュ・ブラウン</button><button type="button" class="chip" data-cc="navy"><i class="dot" style="background:#26324f"></i><i class="dot" style="background:#f4f4f2"></i>ネイビー系</button><button type="button" class="chip" data-cc="accent"><i class="dot" style="background:#9a9a9a"></i><i class="dot" style="background:#c83a4a"></i>差し色を1つ</button>
+  </div></div>
   <button type="button" class="go1" id="cGo">コーデを作る</button>
 </section>
 <div id="cOut" aria-live="polite"></div>
 <section id="aiBox" hidden><h2 class="sec">今日のAIコーデ</h2><p class="intro">毎朝、AI（Claude）が、その日の値下げ商品の中から選んだコーデです。</p><div id="aiOut"></div></section>
-<p class="intro small">自動のコーデは、商品名から種類（トップス・パンツなど）を見分けて、予算に収まるように組み合わせています。色やサイズは、お店のページで確認してください。</p>
+<p class="intro small">自動のコーデは、商品名から種類（トップス・パンツなど）・雰囲気・選べる色を読み取って、季節に合わないもの（秋冬なら半袖やショートパンツなど）を外し、予算に収まるように組み合わせています。「この色で」は、その商品で選べる色の中からのおすすめです。写真の色とちがうことがあるので、お店のページで色とサイズをえらんでください。</p>
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
 const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LABEL={tops:'トップス',bottoms:'パンツ・スカート',outer:'アウター',dress:'ワンピース',bag:'バッグ',shoes:'シューズ'};
-let ITEMS=[],G='men',B=10000;
+/* 色：長い名前から先に探す（オフホワイトをホワイトと読まないように） */
+const COL={'オフホワイト':'#eeeae0','アイボリー':'#f1ecdc','エクリュ':'#ece4d2','ホワイト':'#f7f7f5','ライトグレー':'#c9c9c9','チャコール':'#4a4a4c','グレー':'#9a9a9a','ブラック':'#1d1d1f','ネイビー':'#26324f','ベージュ':'#d8c3a2','キャメル':'#b98a52','ダークブラウン':'#4e3524','ブラウン':'#7a5a3c','モカ':'#8b6e58','カーキ':'#7b7650','オリーブ':'#6b6b3a','ボルドー':'#6d2233','ワイン':'#6d2233','レッド':'#c83a4a','ピンク':'#e59ab0','オレンジ':'#e2853c','イエロー':'#e8c64a','グリーン':'#4f8a5c','ミント':'#9fd4bf','サックス':'#9cbbe0','ブルー':'#3d6fb6','ラベンダー':'#b9a6d8','パープル':'#7a5a9a','シルバー':'#b8bcc2','ゴールド':'#c9a64a'};
+const CNAMES=Object.keys(COL).sort((a,b)=>b.length-a.length);
+const NEUTRAL=new Set(['オフホワイト','アイボリー','エクリュ','ホワイト','ライトグレー','チャコール','グレー','ブラック','ネイビー','ベージュ','キャメル','ダークブラウン','ブラウン','モカ','カーキ','オリーブ']);
+const THEME={
+  mono:{ok:c=>['ブラック','ホワイト','オフホワイト','グレー','ライトグレー','チャコール','シルバー'].includes(c)},
+  earth:{ok:c=>['ベージュ','ブラウン','ダークブラウン','キャメル','モカ','カーキ','オリーブ','アイボリー','エクリュ','オフホワイト','ホワイト'].includes(c),need:['ベージュ','ブラウン','ダークブラウン','キャメル','モカ','カーキ','オリーブ']},
+  navy:{ok:c=>['ネイビー','ホワイト','オフホワイト','グレー','ライトグレー','ベージュ','サックス','ブラック'].includes(c),need:['ネイビー']},
+  accent:{ok:()=>true,accent:1},
+  any:{ok:()=>true,maxAccent:1}
+};
+function colorsOf(name){let n=String(name||''),out=[];for(const c of CNAMES){if(n.includes(c)){out.push(c);n=n.split(c).join(' ')}}return out}
+/* 雰囲気：商品名のことばで点数をつける */
+const STY={
+  kirei:/ジャケット|テーラード|スラックス|トラウザー|ブラウス|シャツ(?!ジャケット)|プリーツ|テーパード|セットアップ|タック|ニット|カーディガン|ウール|モック|ボウタイ|ミディ|タイト|ローファー|ノーカラー/,
+  casual:/デニム|スウェット|パーカー|フーディ|カーゴ|Tシャツ|Tee|カットソー|イージー|チノ|ワイド|ボーダー|コットン|リネン|オーバーオール|スニーカー/,
+  sporty:/ロゴ|ジョガー|トラック|ナイロン|フーディ|パーカー|オーバーサイズ|ビッグ|カーゴ|グラフィック|プリント|メッシュ|スポーツ|アノラック|ブルゾン|スニーカー/
+};
+let ITEMS=[],G='men',B=10000,S='any',CC='any';
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-G=ls.get('ns_cg','men');B=ls.get('ns_cb',10000);
+G=ls.get('ns_cg','men');B=ls.get('ns_cb',10000);S=ls.get('ns_cs','any');CC=ls.get('ns_cc','any');
 const pick=L=>L[Math.floor(Math.pow(Math.random(),1.6)*L.length)];
-function make(g,budget){
-  const pool=ITEMS.filter(x=>x.t&&(x.g===g||x.g==='both')).sort((a,b)=>b.off-a.off||a.price-b.price);
-  const by=t=>pool.filter(x=>x.t===t);
-  const tops=by('tops'),bots=by('bottoms'),outs=by('outer'),dres=by('dress'),bags=by('bag');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* 色の割り当て：1つの商品に、選べる色の中から1色をえらぶ */
+function assign(set,theme){
+  const T=THEME[theme];
+  const opts=set.map(x=>shuffle((x.cols||[]).filter(c=>COL[c]&&T.ok(c))));
+  if(opts.some(o=>!o.length))return null;
+  let best=null;
+  const rec=(i,acc)=>{
+    if(best)return;
+    if(i===set.length){
+      const accents=acc.filter(c=>!NEUTRAL.has(c));
+      if(T.maxAccent!=null&&accents.length>T.maxAccent)return;
+      if(T.accent&&accents.length!==T.accent)return;
+      if(T.need&&!acc.some(c=>T.need.includes(c)))return;
+      const tb=set.map((x,k)=>[x.t,acc[k]]).filter(([t])=>t==='tops'||t==='bottoms').map(([,c])=>c);
+      if(tb.length===2&&tb[0]===tb[1])return;
+      best=acc.slice();return;
+    }
+    for(const c of opts[i].slice(0,6)){acc.push(c);rec(i+1,acc);acc.pop();if(best)return}
+  };
+  rec(0,[]);return best;
+}
+function make(g,budget,style,theme){
+  const mo=new Date().getMonth()+1;
+  const offSeason=(mo>=10||mo<=3)?/半袖|ショーツ|ショートパンツ|ハーフパンツ|タンク|ノースリーブ|サンダル|キャミ|リネン/:(mo>=6&&mo<=8)?/ダウン|ウール|ボア|フリース|中わた|コート|ニット/:null;
+  let pool=ITEMS.filter(x=>x.t&&(x.g===g||x.g==='both')&&!(offSeason&&offSeason.test(x.name))).sort((a,b)=>b.off-a.off||a.price-b.price);
+  const styled=style==='any'?pool:pool.filter(x=>STY[style].test(x.name));
+  const by=t=>{const s=styled.filter(x=>x.t===t);return s.length>=3?s:pool.filter(x=>x.t===t)};
+  const tops=by('tops'),bots=by('bottoms'),outs=by('outer'),dres=by('dress'),bags=pool.filter(x=>x.t==='bag');
   const out=[],used=new Set();
   for(let k=0;k<3;k++){
     let best=null;
-    for(let i=0;i<700;i++){
+    for(let i=0;i<1500;i++){
       let set=[];
       if(g==='women'&&dres.length&&Math.random()<.3)set=[pick(dres)];
       else{if(!tops.length||!bots.length)break;set=[pick(tops),pick(bots)]}
       if(set.some(x=>used.has(x.id)))continue;
       let sum=set.reduce((a,x)=>a+x.price,0);if(sum>budget)continue;
-      const fit=(L,p)=>{if(Math.random()>p)return;const c=L.filter(x=>!used.has(x.id)&&x.price<=budget-sum);if(c.length){const x=pick(c);set.push(x);sum+=x.price}};
+      if(!assign(set,theme))continue;
+      const fit=(L,p)=>{if(Math.random()>p)return;const c=shuffle(L.filter(x=>!used.has(x.id)&&x.price<=budget-sum)).slice(0,12);for(const x of c){if(assign([...set,x],theme)){set.push(x);sum+=x.price;return}}};
       if(budget-sum>=2500)fit(outs,.85);
       if(budget-sum>=1500)fit(bags,.45);
-      const score=set.reduce((a,x)=>a+(x.was||x.price),0)*(0.92+Math.random()*.16);
-      if(!best||score>best.score)best={set,sum,score};
+      const cols=assign(set,theme);if(!cols)continue;
+      const sty=style==='any'?0:set.filter(x=>STY[style].test(x.name)).length/set.length;
+      const score=set.reduce((a,x)=>a+(x.was||x.price),0)*(0.9+Math.random()*.2)*(1+sty);
+      if(!best||score>best.score)best={set,sum,score,cols};
     }
     if(!best)break;
     best.set.forEach(x=>used.add(x.id));out.push(best);
   }
   return out;
 }
-function row(x){
+const dot=c=>COL[c]?`<i class="dot" style="background:${COL[c]}" aria-hidden="true"></i>`:'';
+function row(x,c){
   const img=x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'';
-  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.name)}</span><b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
+  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.name)}</span>${c?`<span class="col">${dot(c)}この色で：<b>${esc(c)}</b></span>`:''}<b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
 }
 function outfit(o,i,title,comment){
   const was=o.set.reduce((a,x)=>a+(x.was||x.price),0);
-  return `<article class="outfit"><header><h2>${esc(title||('コーデ'+(i+1)))}</h2><p>合計 <b>${yen(o.sum)}</b><span>（元の値段の目安 約${yen(was)}）</span></p></header>${comment?`<p class="cm">${esc(comment)}</p>`:''}<ul>${o.set.map(row).join('')}</ul><p class="pr-note"><span class="pr-mark">PR</span> 商品を押すと楽天のお店のページが開きます</p></article>`;
+  const pal=(o.cols||[]).filter(Boolean);
+  return `<article class="outfit"><header><h2>${esc(title||('コーデ'+(i+1)))}</h2><p>合計 <b>${yen(o.sum)}</b><span>（元の値段の目安 約${yen(was)}）</span></p></header>${pal.length?`<p class="pal">${pal.map(dot).join('')}<span>${pal.map(esc).join('・')}</span></p>`:''}${comment?`<p class="cm">${esc(comment)}</p>`:''}<ul>${o.set.map((x,k)=>row(x,(o.cols||[])[k])).join('')}</ul><p class="pr-note"><span class="pr-mark">PR</span> 商品を押すと楽天のお店のページが開きます</p></article>`;
 }
 function draw(){
   document.querySelectorAll('[data-cg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cg===G)));
   document.querySelectorAll('[data-cb]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.cb===B)));
+  document.querySelectorAll('[data-cs]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cs===S)));
+  document.querySelectorAll('[data-cc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cc===CC)));
   $('#cBudget').value=B;
-  const R=make(G,B);
+  const R=make(G,B,S,CC);
   $('#cOut').innerHTML=R.length?`<div class="outs">${R.map((o,i)=>outfit(o,i)).join('')}</div><div class="again"><button type="button" id="cAgain">ほかの組み合わせを見る</button></div>`
-    :`<div class="empty">${yen(B)}では、いまの値下げ商品でコーデを組めませんでした。予算を上げてみてください。</div>`;
+    :`<div class="empty">この条件（${yen(B)}まで）では、いまの値下げ商品でコーデを組めませんでした。予算を上げるか、色を「おまかせ」にしてみてください。</div>`;
 }
 async function load(){
-  try{const r=await fetch('../feed.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});const j=await r.json();ITEMS=(j.items||[]).filter(x=>x&&x.price>0);
+  try{const r=await fetch('../feed.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});const j=await r.json();ITEMS=(j.items||[]).filter(x=>x&&x.price>0);ITEMS.forEach(x=>x.cols=colorsOf(x.name));
     if(j.updated){const u=new Date(j.updated);$('#cStamp').textContent=`${u.getMonth()+1}月${u.getDate()}日の値下げ商品から`}}catch(e){ITEMS=[]}
   if(!ITEMS.length){$('#cOut').innerHTML='<div class="empty">商品データを読みこめませんでした。時間をおいて、もう一度開いてください。</div>';return}
   draw();
   try{const r=await fetch('../outfits.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});if(!r.ok)throw 0;const j=await r.json();
     const byId=new Map(ITEMS.map(x=>[x.id,x]));
-    const A=(j.outfits||[]).map(o=>{const set=(o.items||[]).map(id=>byId.get(id)).filter(Boolean);return set.length>=2&&set.length===(o.items||[]).length?{o,set,sum:set.reduce((a,x)=>a+x.price,0)}:null}).filter(Boolean);
+    const A=(j.outfits||[]).map(o=>{const ids=(o.items||[]).map(v=>typeof v==='string'?v:v&&v.id);const set=ids.map(id=>byId.get(id)).filter(Boolean);if(set.length<2||set.length!==ids.length)return null;
+      const cols=(o.items||[]).map((v,k)=>{const c=typeof v==='object'&&v?v.color:null;return c&&set[k].cols.includes(c)?c:null});
+      return {o,set,cols,sum:set.reduce((a,x)=>a+x.price,0)}}).filter(Boolean);
     if(A.length){$('#aiBox').hidden=false;$('#aiOut').innerHTML=`<div class="outs">${A.map((a,i)=>outfit(a,i,a.o.title,a.o.comment)).join('')}</div>`}}catch(e){}
 }
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-cg]');if(g){G=g.dataset.cg;ls.set('ns_cg',G);draw();return}
   const b=e.target.closest('[data-cb]');if(b){B=+b.dataset.cb;ls.set('ns_cb',B);draw();return}
+  const s=e.target.closest('[data-cs]');if(s){S=s.dataset.cs;ls.set('ns_cs',S);draw();return}
+  const c=e.target.closest('[data-cc]');if(c){CC=c.dataset.cc;ls.set('ns_cc',CC);draw();return}
   if(e.target.closest('#cGo')){const v=Math.round(+$('#cBudget').value||0);if(v>=2000){B=Math.min(v,200000);ls.set('ns_cb',B)}draw();$('#cOut').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(e.target.closest('#cAgain')){draw();$('#cOut').scrollIntoView({behavior:'smooth',block:'start'})}
 });
@@ -192,10 +252,18 @@ load();
 COORD_CSS = """<style>
 .cform{display:flex;flex-direction:column;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:18px}
 .cform .seg{margin-left:0;align-self:flex-start}
-.budgets{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.budgets .chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .free{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);flex-wrap:wrap}
 .free input{width:7.5em;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 8px;font-size:15px;font-variant-numeric:tabular-nums}
+.frm{display:grid;grid-template-columns:3.5em minmax(0,1fr);gap:8px;align-items:start}
+.frm .lb{font-size:13px;color:var(--sub);font-weight:700;padding-top:6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.opts .chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none;vertical-align:-1px}
+.chip .dot+.dot{margin-left:-6px}
+.pal{margin:0;display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.pal span{margin-left:4px}
+.ci .col{flex-basis:100%;font-size:12px;display:flex;align-items:center;gap:5px;color:var(--sub)}
+.ci .col b{color:var(--ink);font-size:12px}
 .go1{align-self:flex-start;border:0;background:var(--tag);color:var(--tagInk);font-weight:700;font-size:15px;border-radius:999px;padding:10px 26px;cursor:pointer}
 .outs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 @media (max-width:440px){.outs{grid-template-columns:minmax(0,1fr)}}
