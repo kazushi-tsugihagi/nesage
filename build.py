@@ -95,7 +95,7 @@ def page_shell(index_html, title, desc, canonical, body, depth):
 def card(x):
     szs = [("フリー" if z == "FREE" else z) for z in (x.get("sz") or [])]
     sz = f'<div class="sz">サイズ {" ".join(szs)}{" ・ " + esc(x["fit"]) if x.get("fit") else ""}</div>' if szs else ""
-    seller = f'<div class="seller">販売：{esc(x["seller"])}</div>' if x.get("cat") == "brand" and x.get("seller") else ""
+    seller = f'<div class="seller">販売：{esc(x["seller"])}</div>' if x.get("cat") in ("brand", "petit") and x.get("seller") else ""
     img = (f'<img src="{esc(x["img"])}" alt="{esc(x["name"])}" loading="lazy" referrerpolicy="no-referrer" width="400" height="400">'
            if x.get("img") else "")
     was = f'<s>約{yen(x["was"])}</s>' if x.get("was") else ""

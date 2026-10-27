@@ -85,6 +85,23 @@ FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": 216131}  # 216131 = バ
 FAMOUS_PAGES = 2
 FAMOUS_MAX = 800
 FAMOUS_PER_BRAND = 80
+# プチプラ（手ごろな値段のブランド）：楽天ファッションか、ブランドの公式ショップのものだけ
+PETIT = [
+    ("GLOBAL WORK", ["GLOBAL WORK", "グローバルワーク"]),
+    ("LOWRYS FARM", ["LOWRYS FARM", "ローリーズファーム"]),
+    ("niko and ...", ["niko and", "ニコアンド"]),
+    ("WEGO", ["WEGO", "ウィゴー"]),
+    ("coca", ["coca", "コカ"]),
+    ("studio CLIP", ["studio CLIP", "スタディオクリップ"]),
+    ("earth music&ecology", ["earth music", "アースミュージック"]),
+    ("RAGEBLUE", ["RAGEBLUE", "レイジブルー"]),
+]
+PETIT_SEARCH = ["GLOBAL WORK OFF", "LOWRYS FARM OFF", "niko and OFF", "WEGO OFF", "coca OFF",
+                "studio CLIP OFF", "earth music OFF", "RAGEBLUE OFF"]
+PETIT_GENRES = {"men": 551177, "women": 100371}
+PETIT_PAGES = 2
+PETIT_MAX = 600
+PETIT_PER_BRAND = 80
 TRUSTED_SHOPS = {"stylife", "stylifemen", "stylifekids"}  # 楽天ファッション
 
 
@@ -93,8 +110,8 @@ def brand_of(name, table=None):
     for label, keys in (table or BRANDS):
         for k in keys:
             kl = k.lower()
-            if kl == "gap":
-                if re.search(r"(?<![a-z])gap(?![a-z])", low):
+            if re.fullmatch(r"[a-z]{2,5}", kl):  # 短い英字（gap・coca・wego）は単語として探す
+                if re.search(r"(?<![a-z])" + kl + r"(?![a-z])", low):
                     return label
             elif kl in low:
                 return label
@@ -257,11 +274,17 @@ def main(path):
     sel, fam = {}, {}
     collect(sel, errors, seen, now_ms, "select", BRANDS, SEARCH, GENRES, PAGES, False)
     collect(fam, errors, seen, now_ms, "brand", FAMOUS, FAMOUS_SEARCH, FAMOUS_GENRES, FAMOUS_PAGES, True)
+    pet = {}
+    collect(pet, errors, seen, now_ms, "petit", PETIT, PETIT_SEARCH, PETIT_GENRES, PETIT_PAGES, True)
     for k in list(fam):
         if k in sel:
             del fam[k]
+    for k in list(pet):
+        if k in sel or k in fam:
+            del pet[k]
     found = dict(sel)
     found.update(fam)
+    found.update(pet)
 
     if not found:
         print("no items found; feed left unchanged", file=sys.stderr)
@@ -276,7 +299,13 @@ def main(path):
             continue
         per[x["shop"]] = per.get(x["shop"], 0) + 1
         fam_items.append(x)
-    items = sorted(sel.values(), key=key)[:MAX_ITEMS] + fam_items[:FAMOUS_MAX]
+    pet_items, per = [], {}
+    for x in sorted(pet.values(), key=key):
+        if per.get(x["shop"], 0) >= PETIT_PER_BRAND:
+            continue
+        per[x["shop"]] = per.get(x["shop"], 0) + 1
+        pet_items.append(x)
+    items = sorted(sel.values(), key=key)[:MAX_ITEMS] + fam_items[:FAMOUS_MAX] + pet_items[:PETIT_MAX]
     for x in items:
         x.pop("_k", None)
     feed["items"] = items
@@ -291,7 +320,7 @@ def main(path):
     by = {}
     for x in items:
         by[x["shop"]] = by.get(x["shop"], 0) + 1
-    print(f"items={len(items)} select={sum(x['cat']=='select' for x in items)} brand={sum(x['cat']=='brand' for x in items)} "
+    print(f"items={len(items)} select={sum(x['cat']=='select' for x in items)} brand={sum(x['cat']=='brand' for x in items)} petit={sum(x['cat']=='petit' for x in items)} "
           f"both={sum(x['g']=='both' for x in items)} "
           f"men={sum(x['g']=='men' for x in items)} "
           f"women={sum(x['g']=='women' for x in items)} new={sum(x['since']==now_ms for x in items)}")
