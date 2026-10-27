@@ -200,6 +200,59 @@ def styles_of(name, cap=""):
     return [k for k, _ in STYLES if k in out]
 
 
+# ---- 表示用の商品名（楽天の長い商品名から、カテゴリ・色・ブランドの読みを取る） ----
+_CATS = ("トップス パンツ スカート ジャケット・アウター ワンピース・ドレス バッグ ファッション雑貨 帽子 シューズ "
+         "スーツ・ネクタイ 水着・スイムグッズ ルームウェア アクセサリー 財布・小物 インナー・下着 "
+         "オールインワン・サロペット レッグウェア 靴 傘 時計 小物").split()
+_COLORS = set(("ブラック ホワイト オフホワイト グレー チャコール ネイビー ベージュ ブラウン カーキ キャメル アイボリー エクリュ "
+               "オリーブ モカ レッド ピンク ブルー サックス グリーン イエロー パープル オレンジ ボルドー ワイン ライトグレー "
+               "ダークブラウン ミント ラベンダー シルバー ゴールド マルチ その他 クリア").split())
+_KANA_STEMS = ("アーバンリサーチ ニコアンド フリークスストア ユナイテッドアローズ アウトレット サロン アダム エ ロペ アダムエロペ "
+               "レイジブルー ウィゴー ディーゼル コーエン ナノユニバース ビームス ハート シップス ジャーナルスタンダード エディフィス "
+               "イエナ ドアーズ アイテムズ ロッソ センスオブプレイス マイケルコース マイケル・コース ケイトスペード ニューヨーク "
+               "マークジェイコブス ポールスミス ポール・スミス トミーヒルフィガー トミー ヒルフィガー ニューバランス ギャップ "
+               "エンポリオアルマーニ エンポリオ・アルマーニ フレッドペリー ラルフローレン ポロ グローバルワーク ローリーズファーム "
+               "コカ スタディオクリップ アースミュージック ジュン スタンダード ピックス ビューティ ビューティアンドユース "
+               "グリーンレーベルリラクシング グリーン・レーベル リラクシング ビーミング ウィメン メン").split()
+
+
+def _is_brand_kana(t):
+    if not re.fullmatch(r"[ァ-ヶー・＆&]+", t):
+        return False
+    return any((k in t) if len(k) >= 4 else (t == k) for k in _KANA_STEMS)
+
+
+_EXTRA_LABELS = ["SALON adam et rope'", "adam et rope'", "ADAM ET ROPE'", "UNITED ARROWS", "BEAMS", "URBAN RESEARCH"]
+
+
+def display_name(name, brand=""):
+    toks = (name or "").split()
+    while len(toks) > 2 and toks[-1] in _COLORS:  # 色の羅列
+        toks.pop()
+    for i in range(len(toks) - 1, 1, -1):  # 後ろのカテゴリ（「トップス ニット」など）
+        if toks[i] in _CATS and len(toks) - i <= 3:
+            toks = toks[:i]
+            break
+    while len(toks) > 2 and _is_brand_kana(toks[-1]):  # ブランドの読み
+        toks.pop()
+    s = " ".join(toks)
+    s = re.sub(r"\s*[＜<][^＞>]{2,40}[＞>]\s*$", "", s)  # 最後の＜レーベル名＞
+    keys = sorted({k for _, ks in BRANDS + FAMOUS + PETIT for k in ks} | set(_EXTRA_LABELS) | {brand}, key=len, reverse=True)
+    keys = [k for k in keys if k and re.search(r"[A-Za-z]", k)]
+    changed = True
+    while changed:  # 先頭と最後のブランド名（カードに別に出すので）
+        changed = False
+        for k in keys:
+            kl = k.lower()
+            if s.lower().startswith(kl + " ") and len(s) - len(k) > 6:
+                s, changed = s[len(k) + 1:], True
+                break
+            if s.lower().endswith(" " + kl) and len(s) - len(k) > 6:
+                s, changed = s[:-len(k) - 1], True
+                break
+    s = re.sub(r"(?<![A-Za-z0-9])\d{2}(SS|AW|FW|SP|SU)(?![A-Za-z0-9])", "", s)
+    return re.sub(r"\s+", " ", s).strip() or name
+
 def clean(name):
     n = TAG_RE.sub(" ", name)
     n = re.sub(r"\s+", " ", n).strip()

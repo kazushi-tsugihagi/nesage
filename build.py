@@ -8,7 +8,9 @@
   - sitemap.xml を作る
 SITE_URL（環境変数）でサイトのURLを変えられる（独自ドメインに移ったとき用）。
 """
-import html, json, os, re, shutil, unicodedata
+import html, json, os, re, shutil, sys, unicodedata
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fetch import display_name  # noqa: E402
 from datetime import datetime, timezone, timedelta
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +24,7 @@ TYPES = [  # 上から順に判定する
     ("bag", "バッグ・小物", r"バッグ|トート|(?<!オフ)ショルダー|リュック|ポーチ|クラッチ|財布|ウォレット|カードケース"),
     ("shoes", "シューズ", r"スニーカー|シューズ|ブーツ|ローファー|サンダル|パンプス|ミュール"),
     ("dress", "ワンピース", r"ワンピース|(?<!パンツ )ドレス(?!パンツ|シャツ)|オールインワン|サロペット|ジャンパースカート"),
-    ("outer", "アウター", r"アウター|コート|ブルゾン|(?<!ボタン)ダウン|ジャケット|ジャンパー"),
+    ("outer", "アウター", r"アウター|(?<!ペチ)コート|ブルゾン|(?<!ボタン)ダウン|ジャケット|ジャンパー"),
     ("bottoms", "パンツ・スカート", r"パンツ|デニム(?!ジャケット|シャツ)|スカート|スラックス|ジーンズ|チノ|ショーツ"),
     ("tops", "トップス", r"トップス|シャツ|ブラウス|ニット|セーター|カーディガン|カットソー|スウェット|パーカー|プルオーバー|ベスト|ジレ|タンク|ポロ|フーディ|Tee|Tシャツ"),
 ]
@@ -49,6 +51,9 @@ def esc(s):
 
 def yen(n):
     return "¥{:,}".format(int(n))
+
+
+CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>'
 
 
 def page_shell(index_html, title, desc, canonical, body, depth):
@@ -79,10 +84,12 @@ def page_shell(index_html, title, desc, canonical, body, depth):
 </style>
 </head><body>
 <header><div class="wrap hrow"><a class="logo" href="{up}" aria-label="ネサゲ トップ"><span class="hole" aria-hidden="true"></span><b>ネサゲ</b><small>セレクトショップと<br>人気ブランドの値下げ</small></a></div></header>
+<div class="trust"><ul class="wrap"><li>{CHECK}楽天市場の商品だけを紹介</li><li>{CHECK}毎朝6時ごろに自動で更新</li><li>{CHECK}お買い物は楽天市場の各ショップで</li><li><a href="{up}about/">ネサゲについて</a></li></ul></div>
 <main class="wrap">
 {body}
 </main>
 <footer><div class="wrap">
+<nav class="fnav" aria-label="サイトの情報"><a href="{up}about/">ネサゲについて</a><a href="{up}privacy/">プライバシーポリシー</a><a href="{up}coord/">予算でコーデを作る</a></nav>
 <p><b>PR</b>：このサイトはアフィリエイト広告（楽天アフィリエイト）を利用しています。リンク先で買い物をすると、サイトに紹介料が入ることがあります。</p>
 <p>値段と在庫は表示した時刻のものです。今の値段は必ずリンク先のお店で確認してください。割引率は、お店が商品名に書いている「○%OFF」の表記をそのまま使っています。取り消し線の「約○円」は、その表記から計算した目安の元の値段です（お店の定価や、実際に売られていた値段を確かめたものではありません）。商品情報と画像は楽天ウェブサービスから取得しています。</p>
 <p><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
@@ -96,13 +103,13 @@ def card(x):
     szs = [("フリー" if z == "FREE" else z) for z in (x.get("sz") or [])]
     sz = f'<div class="sz">サイズ {" ".join(szs)}{" ・ " + esc(x["fit"]) if x.get("fit") else ""}</div>' if szs else ""
     seller = f'<div class="seller">販売：{esc(x["seller"])}</div>' if x.get("cat") in ("brand", "petit") and x.get("seller") else ""
-    img = (f'<img src="{esc(x["img"])}" alt="{esc(x["name"])}" loading="lazy" referrerpolicy="no-referrer" width="400" height="400">'
+    img = (f'<img src="{esc(x["img"])}" alt="{esc(x.get("nm") or x["name"])}" loading="lazy" referrerpolicy="no-referrer" width="400" height="400">'
            if x.get("img") else "")
     was = f'<s>約{yen(x["was"])}</s>' if x.get("was") else ""
     return f"""<article class="card"><a class="ph" href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">{img}<span class="off">{int(x['off'])}<small>%OFF</small></span></a>
-<div class="cb"><div class="shop"><span>{esc(x['shop'])}</span></div><div class="nm">{esc(x['name'])}</div>
+<div class="cb"><div class="shop"><span>{esc(x['shop'])}</span></div><div class="nm">{esc(x.get('nm') or x['name'])}</div>
 <div class="pr"><b>{yen(x['price'])}</b>{was}</div><div class="why">お店の表示（{int(x['off'])}%OFF）から計算</div>{sz}{seller}
-<div class="go"><a href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">お店で見る</a><span class="pr-mark">PR</span></div></div></article>"""
+<div class="go"><a href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">楽天で見る</a><span class="pr-mark">PR</span></div></div></article>"""
 
 
 COORD_BODY = r"""
@@ -221,7 +228,7 @@ function make(g,budget,style,theme){
 const dot=c=>COL[c]?`<i class="dot" style="background:${COL[c]}" aria-hidden="true"></i>`:'';
 function row(x,c){
   const img=x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'';
-  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.name)}</span>${c?`<span class="col">${dot(c)}この色で：<b>${esc(c)}</b></span>`:''}${x.sz&&x.sz.length?`<span class="szl">サイズ ${x.sz.map(z=>z==='FREE'?'フリー':z).join(' ')}${x.fit?' ・ '+esc(x.fit):''}</span>`:''}<b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
+  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.nm||x.name)}</span>${c?`<span class="col">${dot(c)}この色で：<b>${esc(c)}</b></span>`:''}${x.sz&&x.sz.length?`<span class="szl">サイズ ${x.sz.map(z=>z==='FREE'?'フリー':z).join(' ')}${x.fit?' ・ '+esc(x.fit):''}</span>`:''}<b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
 }
 function outfit(o,i,title,comment){
   const was=o.set.reduce((a,x)=>a+(x.was||x.price),0);
@@ -316,6 +323,20 @@ def main():
     for x in items:
         t = type_of(x.get("name"))
         x["t"] = None if t == "goods" else t
+        x["nm"] = display_name(x.get("name"), x.get("shop"))
+    # 同じ商品が別のお店（楽天ファッションと公式ショップなど）で重なっていたら1つにする
+    seen_keys, uniq = set(), []
+    for x in items:
+        img = re.sub(r"\?.*$", "", (x.get("img") or "")).rsplit("/", 1)[-1]
+        k1 = (x["shop"], re.sub(r"\s+", "", x["nm"]).lower(), x["price"])
+        k2 = (x["shop"], img, x["price"]) if img else None
+        if k1 in seen_keys or (k2 and k2 in seen_keys):
+            continue
+        seen_keys.add(k1)
+        if k2:
+            seen_keys.add(k2)
+        uniq.append(x)
+    feed["items"] = items = uniq
     data = json.dumps(feed, ensure_ascii=False, separators=(",", ":"))
     json.loads(data)
     open(feed_path, "w", encoding="utf8").write(data)
@@ -417,6 +438,43 @@ def main():
                             SITE + "coord/", COORD_BODY + links_html(1), 1).replace("</head>", COORD_CSS + "\n</head>", 1)
     open(os.path.join(ROOT, "coord", "index.html"), "w", encoding="utf8").write(coord_html)
 
+    # ネサゲについて／プライバシーポリシー
+    n_items, n_brands = len(items), len({x["shop"] for x in items})
+    about = f"""<nav class="crumb" aria-label="現在地"><a href="../">ネサゲ</a> › <span>ネサゲについて</span></nav>
+<article class="doc"><h1>ネサゲについて</h1>
+<p>ネサゲは、セレクトショップや人気ブランドの服で、いま値下げ中のものを毎朝まとめて紹介しているサイトです。いまは{n_brands}ブランド・約{n_items:,}件の商品を載せています。</p>
+<h2>商品の集め方</h2>
+<ul><li>毎朝6時ごろ、楽天市場の商品データ（楽天ウェブサービス）から、商品名に「○%OFF」と書かれている値下げ中の服を自動で集めています。</li>
+<li>「人気ブランド」と「プチプラ」は、楽天ファッションや、ブランドの公式ショップなど、楽天市場の中で信頼できるお店が売っている商品だけにしています。</li>
+<li>値段・在庫・割引は、集めた時点のものです。いまの値段は、かならず楽天市場のお店のページで確かめてください。</li></ul>
+<h2>お買い物について</h2>
+<ul><li>ネサゲでは商品を売っていません。「楽天で見る」を押すと楽天市場のお店のページが開き、お買い物はそのお店とのやりとりになります。</li>
+<li>ネサゲが、お名前・住所・カード番号などを聞くことはありません。</li></ul>
+<h2>広告（PR）について</h2>
+<p>ネサゲは楽天アフィリエイトを利用しています。ネサゲのリンクから楽天市場でお買い物があると、ネサゲに紹介料が入ることがあります。商品の値段が高くなることはありません。</p>
+<h2>運営</h2>
+<p>ネサゲは個人で運営しているサイトです。ショップ名・ブランド名は各社のもので、ネサゲは各ショップやブランドの公式サイトではありません。</p>
+</article>"""
+    privacy = """<nav class="crumb" aria-label="現在地"><a href="../">ネサゲ</a> › <span>プライバシーポリシー</span></nav>
+<article class="doc"><h1>プライバシーポリシー</h1>
+<h2>集める情報</h2>
+<p>ネサゲは、会員登録やお問い合わせフォームを使っておらず、お名前・メールアドレス・住所などの個人情報を集めていません。</p>
+<h2>この端末の中だけに残る情報</h2>
+<p>お気に入りのお店、保存した商品、えらんだ条件（割引・サイズなど）は、ご利用のブラウザの中（ローカルストレージ）だけに記録しています。ネサゲのサーバーには送られず、ブラウザの設定から消すことができます。</p>
+<h2>アフィリエイトについて</h2>
+<p>ネサゲは楽天アフィリエイトを利用しています。「楽天で見る」から楽天市場のページに移ると、紹介料の計算のため、楽天がクッキーなどを使うことがあります。くわしくは楽天グループのプライバシーポリシーをご覧ください。</p>
+<h2>アクセスの記録</h2>
+<p>ネサゲは GitHub Pages で公開しています。ページを表示するとき、GitHub がアクセスの記録（IPアドレスなど）を残すことがあります。くわしくは GitHub のプライバシーに関する説明をご覧ください。</p>
+<h2>変更</h2>
+<p>このポリシーは、必要に応じて変えることがあります。変えたときは、このページでお知らせします。</p>
+</article>"""
+    DOC_CSS = "<style>.doc{max-width:70ch;padding-block:8px 32px}.doc h1{font-size:22px;margin:10px 0 12px}.doc h2{font-size:16px;margin:22px 0 6px}.doc p,.doc li{font-size:14.5px;line-height:1.8}.doc ul{padding-left:1.2em;margin:0}</style>"
+    for slug_, title_, desc_, body_ in (("about", "ネサゲについて｜ネサゲ", "ネサゲの商品の集め方、お買い物の流れ、広告（PR）、運営について。", about),
+                                       ("privacy", "プライバシーポリシー｜ネサゲ", "ネサゲのプライバシーポリシー。個人情報は集めていません。", privacy)):
+        os.makedirs(os.path.join(ROOT, slug_), exist_ok=True)
+        open(os.path.join(ROOT, slug_, "index.html"), "w", encoding="utf8").write(
+            page_shell(index_html, title_, desc_, SITE + slug_ + "/", body_, 1).replace("</head>", DOC_CSS + "\n</head>", 1))
+
     # トップページにリンクを入れる
     block = "<!--LINKS-->" + links_html(0) + "<!--/LINKS-->"
     if "<!--LINKS-->" in index_html:
@@ -427,7 +485,7 @@ def main():
 
     # サイトマップ
     today = upd.date().isoformat()
-    urls = ["", "coord/"] + [p for p, *_ in pages]
+    urls = ["", "coord/", "about/", "privacy/"] + [p for p, *_ in pages]
     sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "".join(
         f"<url><loc>{esc(SITE + u)}</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq></url>\n" for u in urls) + "</urlset>\n"
     open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf8").write(sm)
