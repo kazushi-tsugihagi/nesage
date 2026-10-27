@@ -77,10 +77,9 @@ FAMOUS = [
     ("FRED PERRY", ["FRED PERRY", "フレッドペリー"]),
     ("New Balance", ["New Balance", "ニューバランス"]),
     ("GAP", ["GAP", "ギャップ"]),
-    ("OUR LEGACY", ["OUR LEGACY", "OURLEGACY", "アワーレガシー"]),
 ]
 FAMOUS_SEARCH = ["MICHAEL KORS", "MARC JACOBS", "kate spade", "ARMANI EXCHANGE", "EMPORIO ARMANI",
-                 "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP", "OUR LEGACY"]
+                 "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP"]
 FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": 216131}  # 216131 = バッグ・小物・ブランド雑貨
 FAMOUS_PAGES = 2
 FAMOUS_MAX = 300
