@@ -35,8 +35,8 @@ SEARCH = ["BEAMS", "UNITED ARROWS", "SHIPS", "JOURNAL STANDARD", "EDIFICE", "IEN
           "URBAN RESEARCH", "nano universe", "FREAK'S STORE", "green label relaxing",
           "BEAUTY&YOUTH", "coen", "ADAM ET ROPE", "JUNRed", "Spick and Span"]
 PAGES = 3
-GENRES = {"men": 551177, "women": 100371}  # メンズファッション / レディースファッション
-MAX_ITEMS = 1200
+GENRES = {"men": 551177, "women": 100371, "both": [216129]}  # メンズ / レディース / ジュエリー・アクセサリー
+MAX_ITEMS = 1500
 OFF_RE = re.compile(r"(\d{1,2})\s*[%％]\s*OFF", re.I)
 TAG_RE = re.compile(r"【[^】]*】|\[[^\]]*\]")
 
@@ -81,7 +81,7 @@ FAMOUS = [
 ]
 FAMOUS_SEARCH = ["MICHAEL KORS", "MARC JACOBS", "kate spade", "ARMANI EXCHANGE", "EMPORIO ARMANI",
                  "Paul Smith", "TOMMY HILFIGER", "RALPH LAUREN", "FRED PERRY", "New Balance", "GAP", "DIESEL OFF"]
-FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": 216131}  # 216131 = バッグ・小物・ブランド雑貨
+FAMOUS_GENRES = {"men": 551177, "women": 100371, "both": [216131, 216129]}  # 216131 = バッグ・小物・ブランド雑貨, 216129 = ジュエリー・アクセサリー
 FAMOUS_PAGES = 2
 FAMOUS_MAX = 800
 FAMOUS_PER_BRAND = 80
@@ -98,9 +98,9 @@ PETIT = [
 ]
 PETIT_SEARCH = ["GLOBAL WORK OFF", "LOWRYS FARM OFF", "niko and OFF", "WEGO OFF", "coca OFF",
                 "studio CLIP OFF", "earth music OFF", "RAGEBLUE OFF"]
-PETIT_GENRES = {"men": 551177, "women": 100371}
+PETIT_GENRES = {"men": 551177, "women": 100371, "both": [216129]}
 PETIT_PAGES = 2
-PETIT_MAX = 600
+PETIT_MAX = 700
 PETIT_PER_BRAND = 80
 TRUSTED_SHOPS = {"stylife", "stylifemen", "stylifekids"}  # 楽天ファッション
 
@@ -203,7 +203,7 @@ def styles_of(name, cap=""):
 # ---- 表示用の商品名（楽天の長い商品名から、カテゴリ・色・ブランドの読みを取る） ----
 _CATS = ("トップス パンツ スカート ジャケット・アウター ワンピース・ドレス バッグ ファッション雑貨 帽子 シューズ "
          "スーツ・ネクタイ 水着・スイムグッズ ルームウェア アクセサリー 財布・小物 インナー・下着 "
-         "オールインワン・サロペット レッグウェア 靴 傘 時計 小物").split()
+         "オールインワン・サロペット レッグウェア 靴 傘 時計 小物 アクセサリー アクセサリー・腕時計 ヘアアクセサリー ジュエリー ファッション小物").split()
 _COLORS = set(("ブラック ホワイト オフホワイト グレー チャコール ネイビー ベージュ ブラウン カーキ キャメル アイボリー エクリュ "
                "オリーブ モカ レッド ピンク ブルー サックス グリーン イエロー パープル オレンジ ボルドー ワイン ライトグレー "
                "ダークブラウン ミント ラベンダー シルバー ゴールド マルチ その他 クリア").split())
@@ -260,7 +260,7 @@ def clean(name):
 
 
 def collect(found, errors, seen, now_ms, cat, table, search, genres, pages, need_trust):
-    for g, genre in genres.items():
+    for g, genre in [(g, x) for g, v in genres.items() for x in (v if isinstance(v, list) else [v])]:
         for kw in search:
           for page in range(1, pages + 1):
             try:

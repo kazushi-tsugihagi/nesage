@@ -20,7 +20,8 @@ MIN_ITEMS = 6
 PER_PAGE = 120
 
 TYPES = [  # 上から順に判定する
-    ("goods", "小物", r"帽子|ビーニー|キャップ|ハット|ベルト|マフラー|ストール|手袋|グローブ|ソックス|靴下|ネクタイ|水着|スイム|ルームウェア|パジャマ"),
+    ("acc", "アクセサリー・小物", r"ネックレス|ピアス|イヤリング|イヤーカフ|(?<![ァ-ヶー])リング|キーリング|ブレスレット|バングル|アンクレット|ヘアクリップ|ヘアゴム|ヘアアクセ|ヘアピン|カチューシャ|バレッタ|シュシュ|時計|ウォッチ|帽子|(?<!ニット)キャップ(?!スリーブ)|ハット|ビーニー|ベレー|ニット帽|ベルト(?!付|ループ)(?!.*(?:パンツ|スカート|ワンピース|ドレス|コート|ジャケット|シャツ|ブラウス))|マフラー|ストール|スヌード|手袋|グローブ|サングラス|メガネ|眼鏡|チャーム|キーホルダー|ブローチ|アクセサリー"),
+    ("goods", "小物", r"ソックス|靴下|ネクタイ|水着|スイム|ルームウェア|パジャマ"),
     ("bag", "バッグ・小物", r"バッグ|トート|(?<!オフ)ショルダー|リュック|ポーチ|クラッチ|財布|ウォレット|カードケース"),
     ("shoes", "シューズ", r"スニーカー|シューズ|ブーツ|ローファー|サンダル|パンプス|ミュール"),
     ("dress", "ワンピース", r"ワンピース|(?<!パンツ )ドレス(?!パンツ|シャツ)|オールインワン|サロペット|ジャンパースカート"),
@@ -141,7 +142,7 @@ COORD_BODY = r"""
 const $=s=>document.querySelector(s);
 const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LABEL={tops:'トップス',bottoms:'パンツ・スカート',outer:'アウター',dress:'ワンピース',bag:'バッグ',shoes:'シューズ'};
+const LABEL={tops:'トップス',bottoms:'パンツ・スカート',outer:'アウター',dress:'ワンピース',bag:'バッグ',shoes:'シューズ',acc:'アクセサリー'};
 /* 色：長い名前から先に探す（オフホワイトをホワイトと読まないように） */
 const COL={'オフホワイト':'#eeeae0','アイボリー':'#f1ecdc','エクリュ':'#ece4d2','ホワイト':'#f7f7f5','ライトグレー':'#c9c9c9','チャコール':'#4a4a4c','グレー':'#9a9a9a','ブラック':'#1d1d1f','ネイビー':'#26324f','ベージュ':'#d8c3a2','キャメル':'#b98a52','ダークブラウン':'#4e3524','ブラウン':'#7a5a3c','モカ':'#8b6e58','カーキ':'#7b7650','オリーブ':'#6b6b3a','ボルドー':'#6d2233','ワイン':'#6d2233','レッド':'#c83a4a','ピンク':'#e59ab0','オレンジ':'#e2853c','イエロー':'#e8c64a','グリーン':'#4f8a5c','ミント':'#9fd4bf','サックス':'#9cbbe0','ブルー':'#3d6fb6','ラベンダー':'#b9a6d8','パープル':'#7a5a9a','シルバー':'#b8bcc2','ゴールド':'#c9a64a'};
 const CNAMES=Object.keys(COL).sort((a,b)=>b.length-a.length);
@@ -169,7 +170,7 @@ const STY={
 };
 let ITEMS=[],G='men',B=10000,S='any',CC='any',Z='any';
 const hasSty=(x,s)=>Array.isArray(x.st)?x.st.includes(s):!!(STY[s]&&STY[s].test(x.name));
-const fitsSize=x=>{if(Z==='any'||x.t==='bag')return true;if(!(x.sz&&x.sz.length))return false;return x.sz.some(z=>z===Z||z==='FREE'||(Z==='XXL'&&/^(XXL|3XL|4XL)$/.test(z)))};
+const fitsSize=x=>{if(Z==='any'||x.t==='bag'||x.t==='acc')return true;if(!(x.sz&&x.sz.length))return false;return x.sz.some(z=>z===Z||z==='FREE'||(Z==='XXL'&&/^(XXL|3XL|4XL)$/.test(z)))};
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 G=ls.get('ns_cg','men');B=ls.get('ns_cb',10000);S=ls.get('ns_cs','any');CC=ls.get('ns_cc','any');Z=ls.get('ns_cz','any');
 const pick=L=>L[Math.floor(Math.pow(Math.random(),1.6)*L.length)];
@@ -201,7 +202,7 @@ function make(g,budget,style,theme){
   let pool=ITEMS.filter(x=>x.t&&(x.g===g||x.g==='both')&&!(offSeason&&offSeason.test(x.name))&&fitsSize(x)).sort((a,b)=>b.off-a.off||a.price-b.price);
   const styled=style==='any'?pool:pool.filter(x=>hasSty(x,style));
   const by=t=>{const s=styled.filter(x=>x.t===t);return s.length>=3?s:pool.filter(x=>x.t===t)};
-  const tops=by('tops'),bots=by('bottoms'),outs=by('outer'),dres=by('dress'),bags=pool.filter(x=>x.t==='bag');
+  const tops=by('tops'),bots=by('bottoms'),outs=by('outer'),dres=by('dress'),bags=pool.filter(x=>x.t==='bag'),accs=pool.filter(x=>x.t==='acc');
   const out=[],used=new Set();
   for(let k=0;k<3;k++){
     let best=null;
@@ -214,7 +215,8 @@ function make(g,budget,style,theme){
       if(!assign(set,theme))continue;
       const fit=(L,p)=>{if(Math.random()>p)return;const c=shuffle(L.filter(x=>!used.has(x.id)&&x.price<=budget-sum)).slice(0,12);for(const x of c){if(assign([...set,x],theme)){set.push(x);sum+=x.price;return}}};
       if(budget-sum>=2500)fit(outs,.85);
-      if(budget-sum>=1500)fit(bags,.45);
+      if(budget-sum>=1500)fit(bags,.4);
+      if(budget-sum>=800)fit(accs,.45);
       const cols=assign(set,theme);if(!cols)continue;
       const sty=style==='any'?0:set.filter(x=>hasSty(x,style)).length/set.length;
       const score=set.reduce((a,x)=>a+(x.was||x.price),0)*(0.9+Math.random()*.2)*(1+sty);
