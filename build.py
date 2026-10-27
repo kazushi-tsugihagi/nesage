@@ -28,6 +28,7 @@ TYPES = [  # 上から順に判定する
 ]
 TYPE_LABEL = {k: v for k, v, _ in TYPES}
 GENDER_LABEL = {"men": "メンズ", "women": "レディース"}
+STYLE_LABEL = {"amekaji": "アメカジ", "street": "ストリート", "casual": "カジュアル", "kirei": "きれいめ", "trad": "トラッド", "mode": "モード", "sporty": "スポーティ", "outdoor": "アウトドア", "natural": "ナチュラル", "feminine": "フェミニン"}
 
 
 def type_of(name):
@@ -92,13 +93,15 @@ def page_shell(index_html, title, desc, canonical, body, depth):
 
 
 def card(x):
+    szs = [("フリー" if z == "FREE" else z) for z in (x.get("sz") or [])]
+    sz = f'<div class="sz">サイズ {" ".join(szs)}{" ・ " + esc(x["fit"]) if x.get("fit") else ""}</div>' if szs else ""
     seller = f'<div class="seller">販売：{esc(x["seller"])}</div>' if x.get("cat") == "brand" and x.get("seller") else ""
     img = (f'<img src="{esc(x["img"])}" alt="{esc(x["name"])}" loading="lazy" referrerpolicy="no-referrer" width="400" height="400">'
            if x.get("img") else "")
     was = f'<s>約{yen(x["was"])}</s>' if x.get("was") else ""
     return f"""<article class="card"><a class="ph" href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">{img}<span class="off">{int(x['off'])}<small>%OFF</small></span></a>
 <div class="cb"><div class="shop"><span>{esc(x['shop'])}</span></div><div class="nm">{esc(x['name'])}</div>
-<div class="pr"><b>{yen(x['price'])}</b>{was}</div><div class="why">お店の表示（{int(x['off'])}%OFF）から計算</div>{seller}
+<div class="pr"><b>{yen(x['price'])}</b>{was}</div><div class="why">お店の表示（{int(x['off'])}%OFF）から計算</div>{sz}{seller}
 <div class="go"><a href="{esc(x['url'])}" target="_blank" rel="sponsored noopener">お店で見る</a><span class="pr-mark">PR</span></div></div></article>"""
 
 
@@ -113,7 +116,10 @@ COORD_BODY = r"""
     <label class="free" for="cBudget">自由に<input id="cBudget" type="number" inputmode="numeric" min="2000" max="200000" step="500" value="10000"><span>円まで</span></label>
   </div></div>
   <div class="frm"><span class="lb">雰囲気</span><div class="opts" role="group" aria-label="雰囲気">
-    <button type="button" class="chip" data-cs="any" aria-pressed="true">おまかせ</button><button type="button" class="chip" data-cs="kirei">きれいめ</button><button type="button" class="chip" data-cs="casual">カジュアル</button><button type="button" class="chip" data-cs="sporty">スポーティ・ストリート</button>
+    <button type="button" class="chip" data-cs="any" aria-pressed="true">おまかせ</button><button type="button" class="chip" data-cs="amekaji">アメカジ</button><button type="button" class="chip" data-cs="street">ストリート</button><button type="button" class="chip" data-cs="casual">カジュアル</button><button type="button" class="chip" data-cs="kirei">きれいめ</button><button type="button" class="chip" data-cs="trad">トラッド</button><button type="button" class="chip" data-cs="sporty">スポーティ</button><button type="button" class="chip" data-cs="outdoor">アウトドア</button><button type="button" class="chip" data-cs="natural">ナチュラル</button><button type="button" class="chip" data-cs="feminine">フェミニン</button>
+  </div></div>
+  <div class="frm"><span class="lb">サイズ</span><div class="opts" role="group" aria-label="サイズ">
+    <button type="button" class="chip" data-cz="any" aria-pressed="true">指定なし</button><button type="button" class="chip" data-cz="S">S</button><button type="button" class="chip" data-cz="M">M</button><button type="button" class="chip" data-cz="L">L</button><button type="button" class="chip" data-cz="XL">XL</button><button type="button" class="chip" data-cz="XXL">XXL以上</button>
   </div></div>
   <div class="frm"><span class="lb">色</span><div class="opts" role="group" aria-label="色の組み合わせ">
     <button type="button" class="chip" data-cc="any" aria-pressed="true">おまかせ</button><button type="button" class="chip" data-cc="mono"><i class="dot" style="background:#1d1d1f"></i><i class="dot" style="background:#f4f4f2"></i>モノトーン</button><button type="button" class="chip" data-cc="earth"><i class="dot" style="background:#c9b08c"></i><i class="dot" style="background:#7a5a3c"></i>ベージュ・ブラウン</button><button type="button" class="chip" data-cc="navy"><i class="dot" style="background:#26324f"></i><i class="dot" style="background:#f4f4f2"></i>ネイビー系</button><button type="button" class="chip" data-cc="accent"><i class="dot" style="background:#9a9a9a"></i><i class="dot" style="background:#c83a4a"></i>差し色を1つ</button>
@@ -122,7 +128,7 @@ COORD_BODY = r"""
 </section>
 <div id="cOut" aria-live="polite"></div>
 <section id="aiBox" hidden><h2 class="sec">今日のAIコーデ</h2><p class="intro">毎朝、AI（Claude）が、その日の値下げ商品の中から選んだコーデです。</p><div id="aiOut"></div></section>
-<p class="intro small">自動のコーデは、商品名から種類（トップス・パンツなど）・雰囲気・選べる色を読み取って、季節に合わないもの（秋冬なら半袖やショートパンツなど）を外し、予算に収まるように組み合わせています。「この色で」は、その商品で選べる色の中からのおすすめです。写真の色とちがうことがあるので、お店のページで色とサイズをえらんでください。</p>
+<p class="intro small">自動のコーデは、商品名から種類（トップス・パンツなど）・雰囲気・選べるサイズ・色を読み取って、季節に合わないもの（秋冬なら半袖やショートパンツなど）を外し、予算に収まるように組み合わせています。「この色で」は、その商品で選べる色の中からのおすすめです。サイズをえらぶと、そのサイズ（またはフリーサイズ）がある商品だけで組みます。サイズごとの在庫と、写真の色とのちがいは、お店のページで確認してください。</p>
 <script>
 (()=>{
 const $=s=>document.querySelector(s);
@@ -145,11 +151,20 @@ function colorsOf(name){let n=String(name||''),out=[];for(const c of CNAMES){if(
 const STY={
   kirei:/ジャケット|テーラード|スラックス|トラウザー|ブラウス|シャツ(?!ジャケット)|プリーツ|テーパード|セットアップ|タック|ニット|カーディガン|ウール|モック|ボウタイ|ミディ|タイト|ローファー|ノーカラー/,
   casual:/デニム|スウェット|パーカー|フーディ|カーゴ|Tシャツ|Tee|カットソー|イージー|チノ|ワイド|ボーダー|コットン|リネン|オーバーオール|スニーカー/,
-  sporty:/ロゴ|ジョガー|トラック|ナイロン|フーディ|パーカー|オーバーサイズ|ビッグ|カーゴ|グラフィック|プリント|メッシュ|スポーツ|アノラック|ブルゾン|スニーカー/
+  sporty:/ジョガー|トラック|ナイロン|スポーツ|アノラック|ジャージ/,
+  amekaji:/アメカジ|ワーク|ミリタリー|デニム|チノ|ネル|ヘビーウェイト|カレッジ/,
+  street:/ストリート|オーバーサイズ|ビッグ|グラフィック|ロゴ|カーゴ|バギー/,
+  outdoor:/アウトドア|マウンテン|フリース|撥水|中綿|中わた|ダウン|ボア/,
+  trad:/トラッド|アイビー|オックスフォード|ボタンダウン|ブレザー|ケーブル|ツイード/,
+  mode:/モード|ドレープ|ミニマル/,
+  natural:/ナチュラル|リネン|ガーゼ|ワッフル/,
+  feminine:/フェミニン|レース|フリル|リボン|ティアード|フラワー|フローラル/
 };
-let ITEMS=[],G='men',B=10000,S='any',CC='any';
+let ITEMS=[],G='men',B=10000,S='any',CC='any',Z='any';
+const hasSty=(x,s)=>Array.isArray(x.st)?x.st.includes(s):!!(STY[s]&&STY[s].test(x.name));
+const fitsSize=x=>{if(Z==='any'||x.t==='bag')return true;if(!(x.sz&&x.sz.length))return false;return x.sz.some(z=>z===Z||z==='FREE'||(Z==='XXL'&&/^(XXL|3XL|4XL)$/.test(z)))};
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-G=ls.get('ns_cg','men');B=ls.get('ns_cb',10000);S=ls.get('ns_cs','any');CC=ls.get('ns_cc','any');
+G=ls.get('ns_cg','men');B=ls.get('ns_cb',10000);S=ls.get('ns_cs','any');CC=ls.get('ns_cc','any');Z=ls.get('ns_cz','any');
 const pick=L=>L[Math.floor(Math.pow(Math.random(),1.6)*L.length)];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 /* 色の割り当て：1つの商品に、選べる色の中から1色をえらぶ */
@@ -176,8 +191,8 @@ function assign(set,theme){
 function make(g,budget,style,theme){
   const mo=new Date().getMonth()+1;
   const offSeason=(mo>=10||mo<=3)?/半袖|ショーツ|ショートパンツ|ハーフパンツ|タンク|ノースリーブ|サンダル|キャミ|リネン/:(mo>=6&&mo<=8)?/ダウン|ウール|ボア|フリース|中わた|コート|ニット/:null;
-  let pool=ITEMS.filter(x=>x.t&&(x.g===g||x.g==='both')&&!(offSeason&&offSeason.test(x.name))).sort((a,b)=>b.off-a.off||a.price-b.price);
-  const styled=style==='any'?pool:pool.filter(x=>STY[style].test(x.name));
+  let pool=ITEMS.filter(x=>x.t&&(x.g===g||x.g==='both')&&!(offSeason&&offSeason.test(x.name))&&fitsSize(x)).sort((a,b)=>b.off-a.off||a.price-b.price);
+  const styled=style==='any'?pool:pool.filter(x=>hasSty(x,style));
   const by=t=>{const s=styled.filter(x=>x.t===t);return s.length>=3?s:pool.filter(x=>x.t===t)};
   const tops=by('tops'),bots=by('bottoms'),outs=by('outer'),dres=by('dress'),bags=pool.filter(x=>x.t==='bag');
   const out=[],used=new Set();
@@ -194,7 +209,7 @@ function make(g,budget,style,theme){
       if(budget-sum>=2500)fit(outs,.85);
       if(budget-sum>=1500)fit(bags,.45);
       const cols=assign(set,theme);if(!cols)continue;
-      const sty=style==='any'?0:set.filter(x=>STY[style].test(x.name)).length/set.length;
+      const sty=style==='any'?0:set.filter(x=>hasSty(x,style)).length/set.length;
       const score=set.reduce((a,x)=>a+(x.was||x.price),0)*(0.9+Math.random()*.2)*(1+sty);
       if(!best||score>best.score)best={set,sum,score,cols};
     }
@@ -206,7 +221,7 @@ function make(g,budget,style,theme){
 const dot=c=>COL[c]?`<i class="dot" style="background:${COL[c]}" aria-hidden="true"></i>`:'';
 function row(x,c){
   const img=x.img?`<img src="${esc(x.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'';
-  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.name)}</span>${c?`<span class="col">${dot(c)}この色で：<b>${esc(c)}</b></span>`:''}<b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
+  return `<li><a class="ci" href="${esc(x.url)}" target="_blank" rel="sponsored noopener"><span class="th">${img}</span><span class="tx"><small>${esc(LABEL[x.t]||'')}・${esc(x.shop)}</small><span class="n">${esc(x.name)}</span>${c?`<span class="col">${dot(c)}この色で：<b>${esc(c)}</b></span>`:''}${x.sz&&x.sz.length?`<span class="szl">サイズ ${x.sz.map(z=>z==='FREE'?'フリー':z).join(' ')}${x.fit?' ・ '+esc(x.fit):''}</span>`:''}<b>${yen(x.price)}</b>${x.was?`<s>約${yen(x.was)}</s>`:''}<em>${x.off}%OFF</em></span></a></li>`;
 }
 function outfit(o,i,title,comment){
   const was=o.set.reduce((a,x)=>a+(x.was||x.price),0);
@@ -218,10 +233,11 @@ function draw(){
   document.querySelectorAll('[data-cb]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.cb===B)));
   document.querySelectorAll('[data-cs]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cs===S)));
   document.querySelectorAll('[data-cc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cc===CC)));
+  document.querySelectorAll('[data-cz]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.cz===Z)));
   $('#cBudget').value=B;
   const R=make(G,B,S,CC);
   $('#cOut').innerHTML=R.length?`<div class="outs">${R.map((o,i)=>outfit(o,i)).join('')}</div><div class="again"><button type="button" id="cAgain">ほかの組み合わせを見る</button></div>`
-    :`<div class="empty">この条件（${yen(B)}まで）では、いまの値下げ商品でコーデを組めませんでした。予算を上げるか、色を「おまかせ」にしてみてください。</div>`;
+    :`<div class="empty">この条件（${yen(B)}まで）では、いまの値下げ商品でコーデを組めませんでした。予算を上げるか、雰囲気・サイズ・色を「おまかせ」「指定なし」にしてみてください。</div>`;
 }
 async function load(){
   try{const r=await fetch('../feed.json?t='+Math.floor(Date.now()/6e5),{cache:'no-cache'});const j=await r.json();ITEMS=(j.items||[]).filter(x=>x&&x.price>0);ITEMS.forEach(x=>x.cols=colorsOf(x.name));
@@ -240,6 +256,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cb]');if(b){B=+b.dataset.cb;ls.set('ns_cb',B);draw();return}
   const s=e.target.closest('[data-cs]');if(s){S=s.dataset.cs;ls.set('ns_cs',S);draw();return}
   const c=e.target.closest('[data-cc]');if(c){CC=c.dataset.cc;ls.set('ns_cc',CC);draw();return}
+  const z=e.target.closest('[data-cz]');if(z){Z=z.dataset.cz;ls.set('ns_cz',Z);draw();return}
   if(e.target.closest('#cGo')){const v=Math.round(+$('#cBudget').value||0);if(v>=2000){B=Math.min(v,200000);ls.set('ns_cb',B)}draw();$('#cOut').scrollIntoView({behavior:'smooth',block:'start'});return}
   if(e.target.closest('#cAgain')){draw();$('#cOut').scrollIntoView({behavior:'smooth',block:'start'})}
 });
@@ -263,6 +280,7 @@ COORD_CSS = """<style>
 .pal{margin:0;display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
 .pal span{margin-left:4px}
 .ci .col{flex-basis:100%;font-size:12px;display:flex;align-items:center;gap:5px;color:var(--sub)}
+.ci .szl{flex-basis:100%;font-size:11.5px;color:var(--sub)}
 .ci .col b{color:var(--ink);font-size:12px}
 .go1{align-self:flex-start;border:0;background:var(--tag);color:var(--tagInk);font-weight:700;font-size:15px;border-radius:999px;padding:10px 26px;cursor:pointer}
 .outs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
@@ -350,16 +368,31 @@ def main():
                           f"{GENDER_LABEL[g]}の{label}で、いま値下げ中の商品を割引が大きい順に並べています（{when}時点）。",
                           sorted(LL, key=key), [(GENDER_LABEL[g], f"{g}/"), (label, None)]))
 
+    # 雰囲気別
+    style_pages = []
+    for k, label in STYLE_LABEL.items():
+        L = [x for x in items if k in (x.get("st") or [])]
+        if len(L) < MIN_ITEMS:
+            continue
+        p = f"style/{k}/"
+        style_pages.append((label, p, len(L)))
+        pages.append((p, f"{label}服のセール・値下げ商品まとめ｜ネサゲ",
+                      f"{label}な服の値下げ商品を{len(L)}件まとめています（メンズ・レディース）。セレクトショップと人気ブランドから。毎朝自動で更新。{when}時点。",
+                      f"{label}な雰囲気の、いま値下げ中の商品を割引が大きい順に並べています。雰囲気は、お店の商品説明から自動で読み取った目安です（{when}時点）。",
+                      sorted(L, key=key), [("雰囲気", None), (label, None)]))
+
     def links_html(depth):
         up = "../" * depth
         bl = "".join(f'<a class="chip" href="{up}{p}">{esc(n)}<span style="color:var(--sub)">{c}</span></a>' for n, p, c in brand_pages)
+        sl = "".join(f'<a class="chip" href="{up}{p}">{esc(n)}<span style="color:var(--sub)">{c}</span></a>' for n, p, c in style_pages)
         cl = "".join(f'<a class="chip" href="{up}{p}">{esc(n)}<span style="color:var(--sub)">{c}</span></a>' for n, p, c in cat_pages)
         return (f'<nav class="links" aria-label="ページ一覧"><section><h2>ブランドから探す</h2><div>{bl}</div></section>'
                 f'<section><h2>カテゴリから探す</h2><div>{cl}</div></section>'
+                f'<section><h2>雰囲気から探す</h2><div>{sl}</div></section>'
                 f'<section><h2>コーデを作る</h2><div><a class="chip" href="{up}coord/">予算に合わせてコーデを作る</a></div></section></nav>')
 
     # 古いページを消してから作りなおす
-    for d in ("brand", "men", "women"):
+    for d in ("brand", "men", "women", "style"):
         shutil.rmtree(os.path.join(ROOT, d), ignore_errors=True)
     for p, title, desc, intro, L, crumbs in pages:
         depth = p.count("/")

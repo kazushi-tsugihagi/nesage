@@ -111,6 +111,77 @@ def trusted(it, label):
     return head in name.replace("・", " ")
 
 
+# ---- サイズ・シルエット・雰囲気（商品名と商品説明から読み取る） ----
+SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "FREE"]
+_SZ = r"(XXXL|XXL|2XL|3XL|4XL|XXS|XS|XL|S|M|L)"
+
+
+def sizes_of(name, cap):
+    found = set()
+    for m in re.finditer(_SZ + r"(?=\d{2,3}(?:\.\d)?(?:[~〜]\d{2,3}(?:\.\d)?)?cm)", cap):  # 寸法表「S60.5cm…」
+        found.add(m.group(1))
+    for m in re.finditer(r"サイズ[:：]\s*([A-Z0-9、,/・\s]{1,40})", cap):  # 「サイズ：S、M、L」
+        for t in re.split(r"[、,/・\s]+", m.group(1)):
+            if re.fullmatch(_SZ, t):
+                found.add(t)
+    m = re.search(r"\(" + _SZ + r"[~〜]" + _SZ + r"\)", name)  # 商品名「(S~XL)」
+    if m:
+        a, b = SIZE_ORDER.index(norm_sz(m.group(1))), SIZE_ORDER.index(norm_sz(m.group(2)))
+        found.update(SIZE_ORDER[a:b + 1])
+    if re.search(r"フリーサイズ|サイズ[:：]\s*(F|FREE|フリー)(?![A-Za-z])|ONE ?SIZE|ワンサイズ", cap + name, re.I):
+        found.add("FREE")
+    out = {norm_sz(x) for x in found}
+    return [x for x in SIZE_ORDER if x in out]
+
+
+def norm_sz(x):
+    return {"XXXL": "3XL", "2XL": "XXL"}.get(x, x)
+
+
+def fit_of(text):
+    if re.search(r"オーバーサイズ|ビッグシルエット|ワイドシルエット|ゆったり|ルーズ|リラックスフィット|ドロップショルダー|バギー", text):
+        return "ゆったり"
+    if re.search(r"スリム|タイト|細身|スッキリ|すっきり|ジャストサイズ|フィット感", text):
+        return "すっきり"
+    return ""
+
+
+STYLES = [
+    ("amekaji", r"アメカジ|ワーク|ミリタリー|M-65|M-51|カバーオール|ペインター|カーペンター|ベイカー|ネルシャツ|ヘビーウェイト|ヴィンテージ|ビンテージ|カレッジ|ダック地|デッキ|チノ|デニム"),
+    ("street", r"ストリート|オーバーサイズ|ビッグシルエット|グラフィック|ロゴ|カーゴ|バギー|スケート|ルーズ"),
+    ("sporty", r"スポーツ|スポーティ|ジョガー|トラック|アノラック|ジャージ|ランニング|ゴルフ"),
+    ("outdoor", r"アウトドア|マウンテン|フリース|撥水|防風|中綿|中わた|ダウン|キャンプ|ボア"),
+    ("kirei", r"きれいめ|キレイめ|綺麗め|テーラード|スラックス|トラウザー|ブラウス|セットアップ|上品|ビジネス|オフィス|通勤|2Bジャケット|2ボタン"),
+    ("trad", r"トラッド|アイビー|オックスフォード|ボタンダウン|ブレザー|ケーブル|ツイード|グレンチェック|ローファー"),
+    ("mode", r"モード|ドレープ|アシンメトリー|ミニマル"),
+    ("natural", r"ナチュラル|リネン|ガーゼ|ワッフル|生成り|やわらか|柔らか"),
+    ("feminine", r"フェミニン|レース|フリル|リボン|ティアード|花柄|フラワー|フローラル|パフスリーブ|ギャザー"),
+    ("casual", r"カジュアル|Tシャツ|カットソー|スウェット|イージー|パーカー|フーディ"),
+]
+
+
+# 商品説明（お店の文章）は「カジュアルからキレイめまで」のような言い方が多いので、
+# 説明からは、服そのものを表すことばだけを使う
+CAP_STYLES = {
+    "amekaji": r"アメカジ|ミリタリー|M-65|M-51|カバーオール|ペインター|ヘビーウェイト|ヴィンテージ|ビンテージ|ワークウェア",
+    "street": r"ストリート(?!から)|オーバーサイズ|ビッグシルエット|スケート",
+    "outdoor": r"アウトドア|撥水|防風|中綿|中わた|ダウン|フリース|ボア",
+    "trad": r"トラッド|アイビー|オックスフォード|ボタンダウン",
+    "feminine": r"レース|フリル|ティアード|フラワー|フローラル",
+    "sporty": r"ジョガー|トラックパンツ|ジャージ|ランニング|ゴルフ",
+}
+
+
+def styles_of(name, cap=""):
+    out = [k for k, r in STYLES if re.search(r, name)]
+    for k, r in CAP_STYLES.items():
+        if k not in out and re.search(r, cap):
+            out.append(k)
+    if re.search(dict(STYLES)["feminine"], name):  # 花柄・レースなどは、アメカジやストリートとは呼ばない
+        out = [k for k in out if k not in ("amekaji", "street", "sporty")]
+    return [k for k, _ in STYLES if k in out]
+
+
 def clean(name):
     n = TAG_RE.sub(" ", name)
     n = re.sub(r"\s+", " ", n).strip()
@@ -157,6 +228,9 @@ def collect(found, errors, seen, now_ms, cat, table, search, genres, pages, need
                     "since": seen.get(code, now_ms), "img": img,
                     "url": it.get("affiliateUrl") or it.get("itemUrl"),
                     "seller": it.get("shopName") or "",
+                    "sz": sizes_of(name, it.get("itemCaption") or ""),
+                    "fit": fit_of(name + " " + (it.get("itemCaption") or "")),
+                    "st": styles_of(name, it.get("itemCaption") or ""),
                     "_k": key,
                 }
             time.sleep(1.1)
