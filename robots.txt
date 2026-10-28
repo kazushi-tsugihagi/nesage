@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://nesage-sale.com/sitemap.xml

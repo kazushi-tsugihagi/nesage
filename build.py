@@ -14,7 +14,7 @@ from fetch import display_name  # noqa: E402
 from datetime import datetime, timezone, timedelta
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-SITE = os.environ.get("SITE_URL", "https://kazushi-tsugihagi.github.io/nesage/").rstrip("/") + "/"
+SITE = os.environ.get("SITE_URL", "https://nesage-sale.com/").rstrip("/") + "/"
 JST = timezone(timedelta(hours=9))
 MIN_ITEMS = 6
 PER_PAGE = 120

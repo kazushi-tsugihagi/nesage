@@ -3,9 +3,9 @@ main = "src/worker.js"
 compatibility_date = "2024-11-01"
 
 [vars]
-FEED_URL = "https://kazushi-tsugihagi.github.io/nesage/feed.json"
-SITE = "https://kazushi-tsugihagi.github.io/nesage/"
-ORIGIN = "https://kazushi-tsugihagi.github.io"
+FEED_URL = "https://nesage-sale.com/feed.json"
+SITE = "https://nesage-sale.com/"
+ORIGIN = "https://nesage-sale.com,https://www.nesage-sale.com,https://kazushi-tsugihagi.github.io"
 
 [[d1_databases]]
 binding = "DB"
