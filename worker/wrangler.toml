@@ -1,0 +1,17 @@
+name = "nesage-api"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+FEED_URL = "https://kazushi-tsugihagi.github.io/nesage/feed.json"
+SITE = "https://kazushi-tsugihagi.github.io/nesage/"
+ORIGIN = "https://kazushi-tsugihagi.github.io"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nesage"
+database_id = "__D1_ID__"
+
+# 毎朝 6:40（日本時間）に値下げをチェック。商品の更新（6:17ごろ）が終わったあと
+[triggers]
+crons = ["40 21 * * *"]

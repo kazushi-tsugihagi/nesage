@@ -67,6 +67,7 @@ def page_shell(index_html, title, desc, canonical, body, depth):
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{esc(canonical)}">
+<link rel="icon" href="{up}favicon.png" type="image/png"><link rel="apple-touch-icon" href="{up}apple-touch-icon.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="ネサゲ">
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{esc(canonical)}">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -426,7 +427,7 @@ def main():
         body = (f'<nav class="crumb" aria-label="現在地">{cr}</nav>'
                 f'<div class="lead"><h1>{esc(h1)}</h1><span class="stamp">{len(L)}件・{when} 更新</span></div>'
                 f'<p class="intro">{esc(intro)}</p>'
-                f'<a class="topbtn" href="{up}">検索や保存は、ネサゲのトップから →</a>'
+                f'<a class="topbtn" href="{up}">検索やいいねは、ネサゲのトップから →</a>'
                 f'<div class="grid">{"".join(card(x) for x in L[:PER_PAGE])}</div>'
                 f'{links_html(depth)}')
         out = os.path.join(ROOT, p, "index.html")
@@ -462,7 +463,13 @@ def main():
 <h2>集める情報</h2>
 <p>ネサゲは、会員登録やお問い合わせフォームを使っておらず、お名前・メールアドレス・住所などの個人情報を集めていません。</p>
 <h2>この端末の中だけに残る情報</h2>
-<p>お気に入りのお店、保存した商品、えらんだ条件（割引・サイズなど）は、ご利用のブラウザの中（ローカルストレージ）だけに記録しています。ネサゲのサーバーには送られず、ブラウザの設定から消すことができます。</p>
+<p>お気に入りのお店、えらんだ条件（割引・サイズなど）は、ご利用のブラウザの中（ローカルストレージ）だけに記録しています。ブラウザの設定から消すことができます。</p>
+<h2>いいね・値下げ通知</h2>
+<p>♡いいねの数をみんなで見られるようにするため、また、いいねした商品が安くなったときにお知らせするため、次の情報をネサゲのサーバー（Cloudflare）に記録します。</p>
+<ul><li>ブラウザごとに作るランダムな番号（お名前などとは結びつきません）</li>
+<li>いいねした商品の番号・商品名・いいねしたときの値段</li>
+<li>通知をオンにした場合、通知を届けるためのブラウザの宛先（プッシュ通知の宛先）</li></ul>
+<p>通知は「通知をやめる」を押すと止まり、宛先は消えます。♡を外すと、その商品の記録も消えます。お知らせの記録は30日で消えます。お名前・メールアドレス・位置情報などは集めていません。</p>
 <h2>アフィリエイトについて</h2>
 <p>ネサゲは楽天アフィリエイトを利用しています。「楽天で見る」から楽天市場のページに移ると、紹介料の計算のため、楽天がクッキーなどを使うことがあります。くわしくは楽天グループのプライバシーポリシーをご覧ください。</p>
 <h2>アクセスの記録</h2>
@@ -472,7 +479,7 @@ def main():
 </article>"""
     DOC_CSS = "<style>.doc{max-width:70ch;padding-block:8px 32px}.doc h1{font-size:22px;margin:10px 0 12px}.doc h2{font-size:16px;margin:22px 0 6px}.doc p,.doc li{font-size:14.5px;line-height:1.8}.doc ul{padding-left:1.2em;margin:0}</style>"
     for slug_, title_, desc_, body_ in (("about", "ネサゲについて｜ネサゲ", "ネサゲの商品の集め方、お買い物の流れ、広告（PR）、運営について。", about),
-                                       ("privacy", "プライバシーポリシー｜ネサゲ", "ネサゲのプライバシーポリシー。個人情報は集めていません。", privacy)):
+                                       ("privacy", "プライバシーポリシー｜ネサゲ", "ネサゲのプライバシーポリシー。お名前などの個人情報は集めていません。いいね・通知のしくみについて。", privacy)):
         os.makedirs(os.path.join(ROOT, slug_), exist_ok=True)
         open(os.path.join(ROOT, slug_, "index.html"), "w", encoding="utf8").write(
             page_shell(index_html, title_, desc_, SITE + slug_ + "/", body_, 1).replace("</head>", DOC_CSS + "\n</head>", 1))

@@ -1,0 +1,86 @@
+name: いいね・通知のサーバーを公開
+
+# Cloudflare のサーバー（worker フォルダ）を公開する。
+# 必要な GitHub の Secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# 通知の鍵（VAPID）はここで自動で作り、Cloudflare に直接しまう（だれの目にもふれない）。
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["worker/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WR: npx --yes wrangler@3.99.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 鍵があるか確かめる
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::GitHub の Secrets に CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID を入れてください"
+            exit 1
+          fi
+
+      - name: データベース（D1）を用意する
+        working-directory: worker
+        run: |
+          ID=$($WR d1 list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=JSON.parse(s);const d=a.find(x=>x.name==="nesage");console.log(d?d.uuid:"")})')
+          if [ -z "$ID" ]; then
+            $WR d1 create nesage
+            ID=$($WR d1 list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=JSON.parse(s);console.log(a.find(x=>x.name==="nesage").uuid)})')
+          fi
+          echo "D1: $ID"
+          sed -i "s/__D1_ID__/$ID/" wrangler.toml
+          $WR d1 execute nesage --remote --file=schema.sql -y
+
+      - name: サーバーを公開する
+        working-directory: worker
+        run: |
+          $WR deploy 2>&1 | tee deploy.log
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          if [ -z "$URL" ]; then
+            echo "::error::workers.dev のアドレスが見つかりません。Cloudflare の Workers のページで workers.dev のサブドメインを作ってください"
+            exit 1
+          fi
+          echo "URL=$URL" >> "$GITHUB_ENV"
+
+      - name: 通知の鍵（VAPID）をしまう（はじめの1回だけ）
+        working-directory: worker
+        run: |
+          if $WR secret list 2>/dev/null | grep -q VAPID_PRIVATE_JWK; then
+            echo "鍵はもうあります"
+          else
+            node gen-vapid.mjs
+            $WR secret put VAPID_PUBLIC < vapid-public.txt
+            $WR secret put VAPID_PRIVATE_JWK < vapid-private.json
+            rm -f vapid-public.txt vapid-private.json
+          fi
+
+      - name: サイトにサーバーの場所を書く
+        run: |
+          echo "{\"base\":\"$URL\"}" > api.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -- worker/wrangler.toml
+          if git diff --quiet -- api.json; then echo "変更なし"; exit 0; fi
+          git add api.json
+          git commit -m "サーバーの場所を更新"
+          git pull --rebase origin main
+          git push

@@ -3,6 +3,7 @@
 <title>予算でコーデを作る（1万円コーデなど）｜ネサゲ</title>
 <meta name="description" content="予算とメンズ・レディースをえらぶと、セレクトショップや人気ブランドの値下げ商品からコーデを作ります。毎朝AIが選ぶ今日のコーデも。">
 <link rel="canonical" href="https://kazushi-tsugihagi.github.io/nesage/coord/">
+<link rel="icon" href="../favicon.png" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="ネサゲ">
 <meta property="og:title" content="予算でコーデを作る（1万円コーデなど）｜ネサゲ"><meta property="og:description" content="予算とメンズ・レディースをえらぶと、セレクトショップや人気ブランドの値下げ商品からコーデを作ります。毎朝AIが選ぶ今日のコーデも。"><meta property="og:url" content="https://kazushi-tsugihagi.github.io/nesage/coord/">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -111,6 +112,14 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .save[aria-pressed="true"]{border-color:var(--tag);color:var(--tag);background:var(--soft)}
 .save[aria-pressed="true"] svg path{fill:currentColor}
 .was{font-size:11.5px;color:var(--tag);font-weight:700}
+.like{flex:none;height:32px;min-width:34px;padding:0 8px;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;color:var(--sub);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.like svg{width:16px;height:16px}
+.like[aria-pressed="true"]{border-color:var(--tag);color:var(--tag);background:var(--soft)}
+.like[aria-pressed="true"] svg path{fill:currentColor}
+.like:empty{display:none}
+.nrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.nbtn{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:13.5px;cursor:pointer}
+.nbtn.off{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
 .drops{margin-top:12px;background:var(--paper);border:1px solid var(--tag);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .drops h2{margin:0;font-size:15px;line-height:1.4;text-wrap:balance}
 .drops h2 em{font-style:normal;color:var(--tag)}

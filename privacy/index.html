@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>プライバシーポリシー｜ネサゲ</title>
-<meta name="description" content="ネサゲのプライバシーポリシー。個人情報は集めていません。">
+<meta name="description" content="ネサゲのプライバシーポリシー。お名前などの個人情報は集めていません。いいね・通知のしくみについて。">
 <link rel="canonical" href="https://kazushi-tsugihagi.github.io/nesage/privacy/">
+<link rel="icon" href="../favicon.png" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta property="og:type" content="website"><meta property="og:site_name" content="ネサゲ">
-<meta property="og:title" content="プライバシーポリシー｜ネサゲ"><meta property="og:description" content="ネサゲのプライバシーポリシー。個人情報は集めていません。"><meta property="og:url" content="https://kazushi-tsugihagi.github.io/nesage/privacy/">
+<meta property="og:title" content="プライバシーポリシー｜ネサゲ"><meta property="og:description" content="ネサゲのプライバシーポリシー。お名前などの個人情報は集めていません。いいね・通知のしくみについて。"><meta property="og:url" content="https://kazushi-tsugihagi.github.io/nesage/privacy/">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
@@ -111,6 +112,14 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .save[aria-pressed="true"]{border-color:var(--tag);color:var(--tag);background:var(--soft)}
 .save[aria-pressed="true"] svg path{fill:currentColor}
 .was{font-size:11.5px;color:var(--tag);font-weight:700}
+.like{flex:none;height:32px;min-width:34px;padding:0 8px;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;color:var(--sub);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.like svg{width:16px;height:16px}
+.like[aria-pressed="true"]{border-color:var(--tag);color:var(--tag);background:var(--soft)}
+.like[aria-pressed="true"] svg path{fill:currentColor}
+.like:empty{display:none}
+.nrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.nbtn{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:8px 16px;font-weight:700;font-size:13.5px;cursor:pointer}
+.nbtn.off{background:var(--paper);color:var(--ink);border:1px solid var(--line)}
 .drops{margin-top:12px;background:var(--paper);border:1px solid var(--tag);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .drops h2{margin:0;font-size:15px;line-height:1.4;text-wrap:balance}
 .drops h2 em{font-style:normal;color:var(--tag)}
@@ -198,7 +207,13 @@ footer p{margin:0;max-width:70ch}
 <h2>集める情報</h2>
 <p>ネサゲは、会員登録やお問い合わせフォームを使っておらず、お名前・メールアドレス・住所などの個人情報を集めていません。</p>
 <h2>この端末の中だけに残る情報</h2>
-<p>お気に入りのお店、保存した商品、えらんだ条件（割引・サイズなど）は、ご利用のブラウザの中（ローカルストレージ）だけに記録しています。ネサゲのサーバーには送られず、ブラウザの設定から消すことができます。</p>
+<p>お気に入りのお店、えらんだ条件（割引・サイズなど）は、ご利用のブラウザの中（ローカルストレージ）だけに記録しています。ブラウザの設定から消すことができます。</p>
+<h2>いいね・値下げ通知</h2>
+<p>♡いいねの数をみんなで見られるようにするため、また、いいねした商品が安くなったときにお知らせするため、次の情報をネサゲのサーバー（Cloudflare）に記録します。</p>
+<ul><li>ブラウザごとに作るランダムな番号（お名前などとは結びつきません）</li>
+<li>いいねした商品の番号・商品名・いいねしたときの値段</li>
+<li>通知をオンにした場合、通知を届けるためのブラウザの宛先（プッシュ通知の宛先）</li></ul>
+<p>通知は「通知をやめる」を押すと止まり、宛先は消えます。♡を外すと、その商品の記録も消えます。お知らせの記録は30日で消えます。お名前・メールアドレス・位置情報などは集めていません。</p>
 <h2>アフィリエイトについて</h2>
 <p>ネサゲは楽天アフィリエイトを利用しています。「楽天で見る」から楽天市場のページに移ると、紹介料の計算のため、楽天がクッキーなどを使うことがあります。くわしくは楽天グループのプライバシーポリシーをご覧ください。</p>
 <h2>アクセスの記録</h2>
