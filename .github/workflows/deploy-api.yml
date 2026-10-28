@@ -32,13 +32,17 @@ jobs:
           node-version: "20"
 
       - name: 鍵があるか確かめる
+        id: chk
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "::error::GitHub の Secrets に CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID を入れてください"
-            exit 1
+            echo "::notice::まだ Cloudflare の鍵（Secrets）がないので、今回は何もしません"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: データベース（D1）を用意する
+        if: steps.chk.outputs.ok == 'true'
         working-directory: worker
         run: |
           ID=$($WR d1 list --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=JSON.parse(s);const d=a.find(x=>x.name==="nesage");console.log(d?d.uuid:"")})')
@@ -51,6 +55,7 @@ jobs:
           $WR d1 execute nesage --remote --file=schema.sql -y
 
       - name: サーバーを公開する
+        if: steps.chk.outputs.ok == 'true'
         working-directory: worker
         run: |
           $WR deploy 2>&1 | tee deploy.log
@@ -62,6 +67,7 @@ jobs:
           echo "URL=$URL" >> "$GITHUB_ENV"
 
       - name: 通知の鍵（VAPID）をしまう（はじめの1回だけ）
+        if: steps.chk.outputs.ok == 'true'
         working-directory: worker
         run: |
           if $WR secret list 2>/dev/null | grep -q VAPID_PRIVATE_JWK; then
@@ -74,6 +80,7 @@ jobs:
           fi
 
       - name: サイトにサーバーの場所を書く
+        if: steps.chk.outputs.ok == 'true'
         run: |
           echo "{\"base\":\"$URL\"}" > api.json
           git config user.name "github-actions[bot]"
