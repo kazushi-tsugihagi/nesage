@@ -27,6 +27,8 @@ jobs:
         run: python3 fetch.py feed.json
       - name: ブランド別・カテゴリ別のページを作る
         run: python3 build.py
+      - name: 今日のAIコーデを作る
+        run: python3 outfits.py
       - name: 変わっていたら保存する
         run: |
           git config user.name "nesage-bot"

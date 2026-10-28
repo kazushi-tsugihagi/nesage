@@ -1,6 +1,8 @@
 name = "nesage-api"
 main = "src/worker.js"
 compatibility_date = "2024-11-01"
+workers_dev = true
+routes = [{ pattern = "api.nesage-sale.com", custom_domain = true }]
 
 [vars]
 FEED_URL = "https://nesage-sale.com/feed.json"

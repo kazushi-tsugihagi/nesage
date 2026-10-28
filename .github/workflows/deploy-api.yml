@@ -59,9 +59,14 @@ jobs:
         working-directory: worker
         run: |
           $WR deploy 2>&1 | tee deploy.log
-          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          # api.nesage-sale.com が使えればそちら、だめなら workers.dev
+          if curl -sf --max-time 20 https://api.nesage-sale.com/api >/dev/null; then
+            URL=https://api.nesage-sale.com
+          else
+            URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          fi
           if [ -z "$URL" ]; then
-            echo "::error::workers.dev のアドレスが見つかりません。Cloudflare の Workers のページで workers.dev のサブドメインを作ってください"
+            echo "::error::サーバーのアドレスが見つかりません"
             exit 1
           fi
           echo "URL=$URL" >> "$GITHUB_ENV"
