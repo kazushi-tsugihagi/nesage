@@ -440,7 +440,21 @@ function list(){
   const sv=st.cat==='saved';
   const szOk=x=>!st.size||(x.sz||[]).some(z=>z===st.size||(st.size==='XXL'&&/^(XXL|3XL|4XL)$/.test(z)));
   let L=D.items.filter(x=>hit(x)&&inCat(x)&&(st.g==='all'||x.g===st.g||x.g==='both')&&(!st.shop||(st.shop==='♡'?favs.includes(x.shop):x.shop===st.shop))&&(!st.kind||x.t===st.kind)&&(!st.style||(x.st||[]).includes(st.style))&&szOk(x)&&(sv||x.off>=+st.minOff)&&(sv||!+st.maxPrice||x.price<=+st.maxPrice));
-  const k={off:(a,b)=>b.off-a.off,cheap:(a,b)=>a.price-b.price,new:(a,b)=>b.since-a.since,likes:(a,b)=>(likeCounts[b.id]||0)-(likeCounts[a.id]||0)||b.off-a.off}[st.sort]||((a,b)=>b.off-a.off);return L.sort(k);
+  const k={off:(a,b)=>b.off-a.off,cheap:(a,b)=>a.price-b.price,new:(a,b)=>b.since-a.since,likes:(a,b)=>(likeCounts[b.id]||0)-(likeCounts[a.id]||0)||b.off-a.off}[st.sort]||((a,b)=>b.off-a.off);L.sort(k);
+  // 割引が大きい順で、お店をしぼっていないときは、同じお店が続きすぎないように混ぜる
+  return (st.sort==='off'&&!st.shop)?mixShops(L,1):L;
+}
+// 並び順はなるべく保ったまま、同じお店は続けて max 件までにする
+function mixShops(L,max){
+  const rest=L.slice(),out=[];let last='',run=0;
+  while(rest.length){
+    let i=0;
+    if(run>=max){i=rest.findIndex(x=>x.shop!==last);if(i<0)i=0}
+    const x=rest.splice(i,1)[0];
+    if(x.shop===last)run++;else{last=x.shop;run=1}
+    out.push(x);
+  }
+  return out;
 }
 function render(keep){
   if(keep!==true)st.limit=PAGE;
